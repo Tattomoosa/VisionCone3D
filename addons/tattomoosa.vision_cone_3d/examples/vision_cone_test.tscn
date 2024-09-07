@@ -1,0 +1,241 @@
+[gd_scene load_steps=16 format=3 uid="uid://cbnmxoeyrctwl"]
+
+[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/src/VisionCone3D.gd" id="1_dit0t"]
+
+[sub_resource type="Curve3D" id="Curve3D_2ntun"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ixflw"]
+albedo_color = Color(1, 0.494118, 1, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_jdwc8"]
+material = SubResource("StandardMaterial3D_ixflw")
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ny8dd"]
+
+[sub_resource type="Animation" id="Animation_l8ao6"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:progress_ratio")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="Animation" id="Animation_61hkl"]
+resource_name = "follow_path"
+length = 10.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:progress_ratio")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 5, 10),
+"transitions": PackedFloat32Array(0.812252, 0.870551, 0.870551),
+"update": 0,
+"values": [0.0, 1.0, 0.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_7hafn"]
+_data = {
+"RESET": SubResource("Animation_l8ao6"),
+"follow_path": SubResource("Animation_61hkl")
+}
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_s5bxb"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_j61qv"]
+radius = 0.2
+height = 0.8
+
+[sub_resource type="Animation" id="Animation_6v47f"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 2.69819, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_xhsf5"]
+resource_name = "sway"
+length = 6.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 3.03333, 6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 2.69819, 0), Vector3(0, 3.45052, 0), Vector3(0, 2.69819, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_3odia"]
+_data = {
+"RESET": SubResource("Animation_6v47f"),
+"sway": SubResource("Animation_xhsf5")
+}
+
+[sub_resource type="BoxMesh" id="BoxMesh_g4t0w"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_nbqgo"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="Path3D" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.77058, 0, 7.34784)
+curve = SubResource("Curve3D_2ntun")
+
+[node name="PathFollow3D" type="PathFollow3D" parent="Path3D"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 0)
+
+[node name="Object" type="StaticBody3D" parent="Path3D/PathFollow3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Path3D/PathFollow3D/Object"]
+mesh = SubResource("CapsuleMesh_jdwc8")
+skeleton = NodePath("../../../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Path3D/PathFollow3D/Object"]
+shape = SubResource("CapsuleShape3D_ny8dd")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Path3D/PathFollow3D"]
+libraries = {
+"": SubResource("AnimationLibrary_7hafn")
+}
+autoplay = "follow_path"
+
+[node name="Path3D2" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.86251, 0, 11.0047)
+curve = SubResource("Curve3D_2ntun")
+
+[node name="PathFollow3D" type="PathFollow3D" parent="Path3D2"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 0)
+
+[node name="Object" type="StaticBody3D" parent="Path3D2/PathFollow3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Path3D2/PathFollow3D/Object"]
+mesh = SubResource("CapsuleMesh_jdwc8")
+skeleton = NodePath("../../../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Path3D2/PathFollow3D/Object"]
+shape = SubResource("CapsuleShape3D_ny8dd")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Path3D2/PathFollow3D"]
+libraries = {
+"": SubResource("AnimationLibrary_7hafn")
+}
+autoplay = "follow_path"
+
+[node name="Path3D3" type="Path3D" parent="."]
+transform = Transform3D(0.258819, 8.88178e-16, -0.965926, -0.965926, -4.37114e-08, -0.258819, -4.2222e-08, 1, -1.13133e-08, -1.15211, 13.8879, 5.65185)
+curve = SubResource("Curve3D_2ntun")
+
+[node name="PathFollow3D" type="PathFollow3D" parent="Path3D3"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 0)
+
+[node name="Object" type="StaticBody3D" parent="Path3D3/PathFollow3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Path3D3/PathFollow3D/Object"]
+mesh = SubResource("CapsuleMesh_jdwc8")
+skeleton = NodePath("../../../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Path3D3/PathFollow3D/Object"]
+shape = SubResource("CapsuleShape3D_ny8dd")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="Path3D3/PathFollow3D/Object"]
+transform = Transform3D(1, 0, -4.77672e-16, 8.88178e-16, 1, -3.55271e-15, -4.7767e-16, 0, 1, 0.703689, 0, -2.6262)
+mesh = SubResource("CapsuleMesh_jdwc8")
+skeleton = NodePath("../../../..")
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="Path3D3/PathFollow3D/Object"]
+transform = Transform3D(1, 0, -4.77672e-16, 8.88178e-16, 1, -3.55271e-15, -4.7767e-16, 0, 1, 0.703689, 0, -2.6262)
+shape = SubResource("CapsuleShape3D_ny8dd")
+
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="Path3D3/PathFollow3D/Object"]
+transform = Transform3D(0.933013, -0.258819, 0.25, 0.258819, -4.37114e-08, -0.965926, 0.25, 0.965926, 0.0669872, 0.336428, 0, -1.25557)
+mesh = SubResource("CapsuleMesh_jdwc8")
+skeleton = NodePath("../../../..")
+
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="Path3D3/PathFollow3D/Object"]
+transform = Transform3D(0.933013, -0.258819, 0.25, 0.258819, -4.37114e-08, -0.965926, 0.25, 0.965926, 0.0669872, 0.336428, 0, -1.25557)
+shape = SubResource("CapsuleShape3D_ny8dd")
+
+[node name="ColliderParent" type="Node3D" parent="Path3D3/PathFollow3D/Object"]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Path3D3/PathFollow3D"]
+libraries = {
+"": SubResource("AnimationLibrary_7hafn")
+}
+autoplay = "follow_path"
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.56938, 0.685048, -0.454439, 0, 0.552796, 0.833317, 0.822074, -0.474474, 0.314751, -9.55809, 10.638, 9.42546)
+
+[node name="SpotLight3D" type="SpotLight3D" parent="."]
+transform = Transform3D(-0.903297, 0, 0.429016, 0, 1, 0, -0.429016, 0, -0.903297, -32.7548, 0, -1.04904e-05)
+spot_range = 129.653
+spot_angle = 31.4036
+
+[node name="Observer" type="Node3D" parent="."]
+transform = Transform3D(-0.903297, 0, 0.429016, 0, 1, 0, -0.429016, 0, -0.903297, 3.68114, 0, 0)
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Observer"]
+mesh = SubResource("CapsuleMesh_s5bxb")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Observer/MeshInstance3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.858, -0.32332)
+mesh = SubResource("CapsuleMesh_j61qv")
+
+[node name="VisionCone3D" type="Node3D" parent="Observer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.027684, 1.0105, -0.425264)
+script = ExtResource("1_dit0t")
+range = 10.9992
+angle = 23.2767
+debug_draw = true
+collision_environment_mask = 2
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Observer"]
+libraries = {
+"": SubResource("AnimationLibrary_3odia")
+}
+autoplay = "sway"
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -0.566679, -0.823939, 0, 0.823939, -0.566679, 0, 48.8795, 0)
+light_energy = 0.264
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.37, 0, 9.071)
+collision_layer = 2
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
+mesh = SubResource("BoxMesh_g4t0w")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("BoxShape3D_nbqgo")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
