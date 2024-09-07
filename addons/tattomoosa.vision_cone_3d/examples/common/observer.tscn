@@ -1,0 +1,37 @@
+[gd_scene load_steps=6 format=3 uid="uid://brqivkckug8uc"]
+
+[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/src/VisionCone3D.gd" id="1_t4wly"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_td2ym"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ecabg"]
+albedo_color = Color(1, 0.635294, 1, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_5i4ah"]
+material = SubResource("StandardMaterial3D_ecabg")
+radius = 0.25
+height = 0.75
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cf0b5"]
+
+[node name="Observer" type="CharacterBody3D"]
+metadata/_edit_group_ = true
+
+[node name="VisionCone3D" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.41062, -0.023833)
+script = ExtResource("1_t4wly")
+range = 15.6096
+debug_draw = true
+vision_test_mode = 1
+vision_test_max_raycast_per_frame = null
+collision_environment_mask = 2
+
+[node name="Body" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_td2ym")
+
+[node name="Face" type="MeshInstance3D" parent="Body"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0.386695, -0.364832)
+mesh = SubResource("CapsuleMesh_5i4ah")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_cf0b5")

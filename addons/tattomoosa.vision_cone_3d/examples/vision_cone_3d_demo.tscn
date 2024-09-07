@@ -1,0 +1,111 @@
+[gd_scene load_steps=7 format=3 uid="uid://7xeocy4p43x6"]
+
+[ext_resource type="PackedScene" uid="uid://brqivkckug8uc" path="res://addons/tattomoosa.vision_cone_3d/examples/common/observer.tscn" id="1_5m65v"]
+[ext_resource type="PackedScene" uid="uid://cmgl8607thxgg" path="res://addons/tattomoosa.vision_cone_3d/examples/common/observable.tscn" id="2_bfp2s"]
+[ext_resource type="PackedScene" uid="uid://mqvpirrmppob" path="res://addons/tattomoosa.vision_cone_3d/examples/common/blocker.tscn" id="3_0fs8r"]
+[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/VisionConeDemoControls.gd" id="4_sd4gn"]
+[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/common/ValueLabel.gd" id="5_fs3bv"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_dqtte"]
+
+[node name="VisionCone3dDemo" type="Node3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 10.8989, 0)
+fov = 100.7
+size = 12.261
+
+[node name="Observer" parent="." instance=ExtResource("1_5m65v")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 9.98095)
+
+[node name="VisionCone3D" parent="Observer" index="0"]
+vision_test_max_raycast_per_frame = 5
+
+[node name="Observable" parent="." instance=ExtResource("2_bfp2s")]
+
+[node name="Observable2" parent="." instance=ExtResource("2_bfp2s")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0.620374, 0, 0.320505)
+
+[node name="Observable3" parent="." instance=ExtResource("2_bfp2s")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -3.10471, 0, 0.00297272)
+
+[node name="Observable4" parent="." instance=ExtResource("2_bfp2s")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 4.81212, 0, -3.47144)
+
+[node name="Observable5" parent="." instance=ExtResource("2_bfp2s")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0.712666, 0, -3.65774)
+
+[node name="Observable6" parent="." instance=ExtResource("2_bfp2s")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0.82285, -9.53674e-07, -5.29844)
+
+[node name="Blocker" parent="." instance=ExtResource("3_0fs8r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.462578, 0, 1.96592)
+
+[node name="Blocker2" parent="." instance=ExtResource("3_0fs8r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.64948, -1.26544, 1.96592)
+
+[node name="Controls" type="PanelContainer" parent="." node_paths=PackedStringArray("vision_cone")]
+offset_left = 13.0
+offset_top = 14.0
+offset_right = 308.0
+offset_bottom = 45.0
+script = ExtResource("4_sd4gn")
+vision_cone = NodePath("../Observer/VisionCone3D")
+
+[node name="MarginContainer" type="MarginContainer" parent="Controls"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Controls/MarginContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="Controls/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Vision Test Mode"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Controls/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="RaycastCenterCheckBox" type="CheckBox" parent="Controls/MarginContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+button_pressed = true
+button_group = SubResource("ButtonGroup_dqtte")
+text = "Center"
+
+[node name="RaycastScatterCheckBox" type="CheckBox" parent="Controls/MarginContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+button_group = SubResource("ButtonGroup_dqtte")
+text = "Scatter"
+
+[node name="HSeparator" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Controls/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Controls/MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Max Raycasts Per Shape:"
+
+[node name="RaycastPerFrameValueLabel" type="Label" parent="Controls/MarginContainer/VBoxContainer/HBoxContainer2" node_paths=PackedStringArray("range_control")]
+layout_mode = 2
+script = ExtResource("5_fs3bv")
+range_control = NodePath("../../RaycastsPerFrameSlider")
+
+[node name="RaycastsPerFrameSlider" type="HSlider" parent="Controls/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+value = 1.0
+
+[node name="HSeparator2" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[editable path="Observer"]

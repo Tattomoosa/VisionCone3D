@@ -7,6 +7,12 @@ extends Node3D
 ## object is unobstructed
 
 # static var debug_draw_all := false
+static var _rng := RandomNumberGenerator.new()
+
+enum VisionTestMode{
+	SAMPLE_CENTER,
+	SAMPLE_RANDOM_VERTICES
+}
 
 #region signals
 signal body_visible(body: Node3D)
@@ -35,7 +41,10 @@ signal body_hidden(body: Node3D)
 			for shape in _shapes_in_bounding_box:
 				Debug.delete_line(str(self) + ":" + str(shape))
 
+@export_group("Vision Test", "vision_test_")
+@export var vision_test_mode : VisionTestMode
 @export_group("Collision", "collision_")
+@export var vision_test_max_raycast_per_frame : int = 5
 
 ## Collision layer of the vision cone
 @export_flags_3d_physics var collision_layer : int = 1:
@@ -65,19 +74,9 @@ signal body_hidden(body: Node3D)
 var end_radius: float:
 	get: return _end_radius
 
-# var bodies_visible: Array[Node3D]:
-# 	get:
-		# return _bodies_visible.duplicate()
-#endregion public_variables
-
-#region private_variables
-
 var _shape : BoxShape3D
 var _collision_shape : CollisionShape3D
 var _area : Area3D
-
-# var _bodies_visible : Array[Node3D] = []
-# var _bodies_inside : Array[Node3D] = []
 
 var _shapes_visible : Array[Node3D] = []
 var _shapes_in_bounding_box : Array[Node3D] = []
@@ -87,10 +86,11 @@ var _end_radius: float = 0.0
 #endregion private_variables
 
 #region constants
-const DEBUG_VISION_CONE_COLOR := Color(1, 1, 0, 0.02)
+const DEBUG_VISION_CONE_COLOR := Color(1, 1, 0, 0.005)
 const DEBUG_RAY_COLOR_IS_VISIBLE := Color(Color.GREEN, 1.0)
-const DEBUG_RAY_COLOR_IN_CONE := Color(Color.RED, 1.0)
-const DEBUG_RAY_COLOR_IN_BOUNDING_BOX := Color(Color.WHITE, 0.01)
+const DEBUG_RAY_COLOR_IS_VISIBLE_TEST := Color(Color.GREEN, 0.1)
+const DEBUG_RAY_COLOR_IN_CONE := Color(Color.RED, 0.1)
+# const DEBUG_RAY_COLOR_IN_BOUNDING_BOX := Color(Color.WHITE, 0.01)
 #endregion constants
 
 #region engine_callbacks
@@ -130,6 +130,14 @@ func _physics_process(_delta: float) -> void:
 #endregion engine_callbacks
 
 #region public_methods
+func _find_random_points_on_shape_debug_mesh(mesh: ArrayMesh) -> Array[Vector3]:
+	var surface_count := mesh.get_surface_count()
+	var vertices = mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var points : Array[Vector3] = []
+	for point in vision_test_max_raycast_per_frame:
+		points.push_back(vertices[_rng.randi_range(0, vertices.size() - 1)])
+	return points
+
 func point_in_vision_cone(global_point: Vector3) -> bool:
 	var body_pos := -global_basis.z
 	var pos := global_point - global_position
@@ -159,47 +167,52 @@ func shape_in_vision_cone(shape: Node3D) -> bool:
 #endregion public_methods
 
 #region private_methods
-func _get_body_center_position(body: Node3D) -> Vector3:
-	# TODO get bounds, find center, return
-	if body is PhysicsBody3D:
-		print("body is physicsbody: ", body)
-	elif body is CollisionShape3D:
-		print("body is collisionshape: ", body)
-	else:
-		push_warning("NO HANDLEABLE BODY FOUND")
-	return Vector3.ZERO
-
 func _update_shape_visibility(shape: Node3D) -> void:
-	# TODO shape can also be CollisionPolygon3D
-	# need to determine if that needs separate handling...
-	if shape is CollisionShape3D:
-		var s := shape as CollisionShape3D
-		# TODO i think this always works?
-		var body := shape.get_parent()
+	var body := shape.get_parent()
 
-		# not in cone
-		if !shape_in_vision_cone(shape):
-			# if debug_draw: Debug.draw_line(global_position, shape.global_position, DEBUG_RAY_COLOR_IN_BOUNDING_BOX, str(self) + ":" + str(shape))
-			if debug_draw: Debug.delete_line(str(self) + ":" + str(shape))
-			if _shapes_visible.has(shape):
-				_shapes_visible.erase(shape)
-			return
+	if debug_draw:
+		Debug.delete_line(str(self) + ":" + str(shape))
+		for i in 5:
+			Debug.delete_line(str(self) + ":" + str(shape) + str(i))
+
+
+	# not in cone
+	if !shape_in_vision_cone(shape):
+		if _shapes_visible.has(shape):
+			_shapes_visible.erase(shape)
+		return
+	
+	var sample_points : Array[Vector3] = [Vector3.ZERO]
+	match vision_test_mode:
+		VisionTestMode.SAMPLE_CENTER:
+			pass
+			# sample_points = [Vector3.ZERO]
+		VisionTestMode.SAMPLE_RANDOM_VERTICES: 
+			var mesh : ArrayMesh = shape.shape.get_debug_mesh() 
+			sample_points.append_array(_find_random_points_on_shape_debug_mesh(mesh))
+			# for _i in vision_test_max_raycast_per_frame:
+				# sample_points.push_back(_find_random_points_on_shape_debug_mesh(mesh))
+	var debug_index := 0
+	for point in sample_points:
+		var global_point := shape.global_position + (shape.global_basis * point)
+
+		var result := _raycast_collision(global_point)
 
 		# obstructed
-		var result := _raycast_collision(s.global_position)
 		if result != body:
-			if _shapes_visible.has(shape):
-				_shapes_visible.erase(shape)
-				if debug_draw:
-					Debug.draw_line(global_position, shape.global_position, DEBUG_RAY_COLOR_IN_CONE, str(self) + ":" + str(shape))
-				return
+			if debug_draw: Debug.draw_line(global_position, global_point, DEBUG_RAY_COLOR_IN_CONE, str(self) + ":" + str(shape) + str(debug_index))
+			continue
 
 		# visible
 		if !_shapes_visible.has(shape):
 			_shapes_visible.push_back(shape)
 		if debug_draw:
+			Debug.draw_line(global_position, global_point, DEBUG_RAY_COLOR_IS_VISIBLE_TEST, str(self) + ":" + str(shape) + str(debug_index))
 			Debug.draw_line(global_position, shape.global_position, DEBUG_RAY_COLOR_IS_VISIBLE, str(self) + ":" + str(shape))
 		return
+
+	if _shapes_visible.has(shape):
+		_shapes_visible.erase(shape)
 
 func _draw_bounds() -> void:
 	var m : CylinderMesh = _bounds_renderer.mesh
@@ -266,8 +279,6 @@ func _get_cone_end_radius() -> float:
 static func _cone_visualizer_material(albedo_color: Color = DEBUG_VISION_CONE_COLOR) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = albedo_color
-	# mat.emission_enabled = true
-	# mat.emission = albedo_color
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
@@ -277,63 +288,17 @@ static func get_cone_radius(height: float, angle_deg: float) -> float:
 	return height * tan(deg_to_rad(angle_deg))
 #endregion
 
-# #region DEPRECATED
+# class VisionTestRaycastFrameData:
+# 	var collision_shape: CollisionShape3D
+# 	var last_frame_visible: bool
+# 	var last_frame_visible_at_local_point: Vector3
+# 	var test_mode: VisionTestMode = VisionTestMode.SAMPLE_CENTER
+# 	var max_probe_count : int
 
-# # deprecated
-# func collider_in_vision_cone(collider: Node3D) -> bool:
-# 	# var distance := (global_position - collider.position).length()
-# 	var distance := (collider.global_position - global_position).length()
-# 	var space_state := get_world_3d().direct_space_state
-# 	var sphere_shape := SphereShape3D.new()
-# 	sphere_shape.radius = get_cone_radius(distance, angle)
-# 	var sphere_query := PhysicsShapeQueryParameters3D.new()
-# 	sphere_query.shape = sphere_shape
-# 	var forward := PhysicsUtil.get_forward(self)
-# 	var sphere_origin := global_position + (forward * distance)
-# 	sphere_query.transform.origin = sphere_origin
-# 	var intersect_info := space_state.intersect_shape(sphere_query)
-# 	for info in intersect_info:
-# 		if collider == info.collider:
-# 			return true
-# 	return false
+# 	func _init(collision_shape_: CollisionShape3D, test_mode: VisionTestMode, max_probe_count_: int):
+# 		collision_shape = collision_shape_
 
-# # deprecated
-# func _on_body_entered(body: Node3D) -> void:
-# 	_bodies_inside.push_back(body)
-
-# # deprecated
-# func _on_body_exited(body: Node3D) -> void:
-# 	_bodies_inside.erase(body)
-# 	if debug_draw:
-# 		Debug.delete_line(str(self) + ":" + str(body))
-
-# # deprecated
-# func _update_body_visibility(body: Node3D) -> void:
-# 	var result := _raycast_collision(body.global_position)
-# 	if result == body:
-# 		var debug_draw_color := Color()
-# 		if collider_in_vision_cone(body):
-# 			debug_draw_color = Color.GREEN
-
-# 			if !_bodies_visible.has(body):
-# 				_bodies_visible.push_back(body)
-# 				body_visible.emit(body)
-
-# 		else:
-# 			debug_draw_color = Color(1, 1, 1, 0.1)
-# 			if _bodies_visible.has(body):
-# 				_bodies_visible.erase(body)
-# 				body_hidden.emit(body)
-
-# 		if debug_draw:
-# 			Debug.draw_line(global_position, body.global_position, debug_draw_color, str(self) + ":" + str(body))
-
-# 	else:
-# 		if _bodies_visible.has(body):
-# 			_bodies_visible.erase(body)
-# 			body_hidden.emit(body)
-
-# 			if debug_draw:
-# 				Debug.delete_line(str(self) + ":" + str(body))
-
-# #endregion
+# 	class RaycastInfo:
+# 		var start : Vector3
+# 		var end : Vector3
+# 		var visible : bool

@@ -1,0 +1,31 @@
+[gd_scene load_steps=6 format=3 uid="uid://cmgl8607thxgg"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dnr2f"]
+albedo_color = Color(0, 0, 0, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_nj3xo"]
+material = SubResource("StandardMaterial3D_dnr2f")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ecabg"]
+albedo_color = Color(1, 0.635294, 1, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_5i4ah"]
+material = SubResource("StandardMaterial3D_ecabg")
+radius = 0.25
+height = 0.75
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cf0b5"]
+
+[node name="Observable" type="CharacterBody3D"]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -0.195181, 0, -1.77211)
+metadata/_edit_group_ = true
+
+[node name="Body" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_nj3xo")
+
+[node name="Face" type="MeshInstance3D" parent="Body"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0.386695, -0.364832)
+mesh = SubResource("CapsuleMesh_5i4ah")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_cf0b5")
