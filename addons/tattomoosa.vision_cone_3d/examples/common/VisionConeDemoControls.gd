@@ -8,6 +8,7 @@ extends PanelContainer
 @onready var angle_slider : Slider = %AngleSlider
 @onready var range_slider : Slider = %RangeSlider
 @onready var rotation_slider : Slider = %ObserverRotationSlider
+@onready var position_slider : Slider = %ObserverPositionSlider
 
 func _ready():
 	raycast_center_checkbox.toggled.connect(_set_center)
@@ -15,12 +16,14 @@ func _ready():
 	raycast_count_slider.value_changed.connect(func(value: float): vision_cone.vision_test_shape_probe_count = value)
 	angle_slider.value_changed.connect(func(value: float): vision_cone.angle = value)
 	range_slider.value_changed.connect(func(value: float): vision_cone.range = value)
-	rotation_slider.value_changed.connect(func(value: float): vision_cone.rotation_degrees.y = value)
+	rotation_slider.value_changed.connect(func(value: float): vision_cone.get_parent().rotation_degrees.y = -value)
+	position_slider.value_changed.connect(func(value: float): vision_cone.get_parent().position.x = value)
 
 	vision_cone.vision_test_shape_probe_count = raycast_count_slider.value
 	vision_cone.angle = angle_slider.value
 	vision_cone.range = range_slider.value
-	vision_cone.rotation_degrees.y = rotation_slider.value
+	vision_cone.get_parent().rotation_degrees.y = -rotation_slider.value
+	vision_cone.get_parent().position.x = position_slider.value
 	_set_center(raycast_center_checkbox.button_pressed)
 	_set_scatter(raycast_scatter_checkbox.button_pressed)
 

@@ -17,7 +17,7 @@ height = 0.75
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cf0b5"]
 
 [node name="Observable" type="CharacterBody3D"]
-transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -0.195181, 0, -1.77211)
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
 metadata/_edit_group_ = true
 
 [node name="Body" type="MeshInstance3D" parent="."]

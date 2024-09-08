@@ -23,7 +23,6 @@ script = ExtResource("1_t4wly")
 range = 15.6096
 debug_draw = true
 vision_test_mode = 1
-vision_test_max_raycast_per_frame = null
 collision_environment_mask = 2
 
 [node name="Body" type="MeshInstance3D" parent="."]

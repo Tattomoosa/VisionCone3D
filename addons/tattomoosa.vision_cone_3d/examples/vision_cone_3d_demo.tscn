@@ -1,10 +1,55 @@
-[gd_scene load_steps=7 format=3 uid="uid://7xeocy4p43x6"]
+[gd_scene load_steps=11 format=3 uid="uid://7xeocy4p43x6"]
 
 [ext_resource type="PackedScene" uid="uid://brqivkckug8uc" path="res://addons/tattomoosa.vision_cone_3d/examples/common/observer.tscn" id="1_5m65v"]
 [ext_resource type="PackedScene" uid="uid://cmgl8607thxgg" path="res://addons/tattomoosa.vision_cone_3d/examples/common/observable.tscn" id="2_bfp2s"]
 [ext_resource type="PackedScene" uid="uid://mqvpirrmppob" path="res://addons/tattomoosa.vision_cone_3d/examples/common/blocker.tscn" id="3_0fs8r"]
-[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/VisionConeDemoControls.gd" id="4_sd4gn"]
+[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/common/VisionConeDemoControls.gd" id="4_sd4gn"]
 [ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/common/ui/ValueLabel.gd" id="5_fs3bv"]
+
+[sub_resource type="Curve3D" id="Curve3D_5a4ia"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="Animation" id="Animation_yavxk"]
+resource_name = "back_and_forth"
+length = 6.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("PathFollow3D:progress_ratio")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 3, 6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.0, 1.0, 0.0]
+}
+
+[sub_resource type="Animation" id="Animation_gthqg"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("PathFollow3D:progress_ratio")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_gv3ui"]
+_data = {
+"RESET": SubResource("Animation_gthqg"),
+"back_and_forth": SubResource("Animation_yavxk")
+}
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_dqtte"]
 
@@ -19,15 +64,15 @@ size = 28.134
 [node name="Observer" parent="." instance=ExtResource("1_5m65v")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 9.98095)
 
-[node name="VisionCone3D" parent="Observer" index="0" node_paths=PackedStringArray("vision_test_ignore_bodies")]
-range = 24.3599
-angle = 24.3209
-vision_test_ignore_bodies = [NodePath("..")]
+[node name="VisionCone3D" parent="Observer" index="0"]
+range = 19.909
+angle = 53.0937
 
 [node name="CollisionShape3D" parent="Observer" index="2"]
 disabled = true
 
 [node name="Observable" parent="." instance=ExtResource("2_bfp2s")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 7.13397, 0, 4.02523)
 
 [node name="Observable2" parent="." instance=ExtResource("2_bfp2s")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0.620374, 0, 0.320505)
@@ -39,7 +84,7 @@ transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -3.104
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 4.81212, 0, -3.47144)
 
 [node name="Observable5" parent="." instance=ExtResource("2_bfp2s")]
-transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0.712666, 0, -3.65774)
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 1.3926, 0, -3.65774)
 
 [node name="Observable6" parent="." instance=ExtResource("2_bfp2s")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0.82285, -9.53674e-07, -5.29844)
@@ -49,6 +94,80 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.462578, 0, 1.96592)
 
 [node name="Blocker2" parent="." instance=ExtResource("3_0fs8r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.64948, -1.26544, 1.96592)
+
+[node name="Blocker3" parent="." instance=ExtResource("3_0fs8r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7515, -0.0213798, 1.43887)
+
+[node name="Blocker4" parent="." instance=ExtResource("3_0fs8r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.00019, -0.0213798, 2.56153)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.459409, 0.888225, 0, -0.888225, 0.459409, 0, 11.3788, 9.05158)
+light_energy = 0.5
+
+[node name="Path3D" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.94763, 0, -2.14264)
+curve = SubResource("Curve3D_5a4ia")
+
+[node name="PathFollow3D" type="PathFollow3D" parent="Path3D"]
+transform = Transform3D(-4.37113e-08, 0, -0.999999, 0, 1, 0, 0.999999, 0, -4.37113e-08, 0, 0, 0)
+
+[node name="Observable7" parent="Path3D/PathFollow3D" instance=ExtResource("2_bfp2s")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 0)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Path3D"]
+libraries = {
+"": SubResource("AnimationLibrary_gv3ui")
+}
+autoplay = "back_and_forth"
+
+[node name="Path3D2" type="Path3D" parent="."]
+transform = Transform3D(0.998659, 0, 0.0517608, 0, 1, 0, -0.0517608, 0, 0.998659, 3.38608, 0, -5.14012)
+curve = SubResource("Curve3D_5a4ia")
+
+[node name="PathFollow3D" type="PathFollow3D" parent="Path3D2"]
+transform = Transform3D(-4.37113e-08, 0, -0.999999, 0, 1, 0, 0.999999, 0, -4.37113e-08, 0, 0, 0)
+
+[node name="Observable7" parent="Path3D2/PathFollow3D" instance=ExtResource("2_bfp2s")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 0)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Path3D2"]
+libraries = {
+"": SubResource("AnimationLibrary_gv3ui")
+}
+autoplay = "back_and_forth"
+
+[node name="Path3D3" type="Path3D" parent="."]
+transform = Transform3D(0.595159, 0, 0.803608, 0, 1, 0, -0.803608, 0, 0.595159, -4.2506, 0, -2.27039)
+curve = SubResource("Curve3D_5a4ia")
+
+[node name="PathFollow3D" type="PathFollow3D" parent="Path3D3"]
+transform = Transform3D(-4.37113e-08, 0, -0.999999, 0, 1, 0, 0.999999, 0, -4.37113e-08, 0, 0, 0)
+
+[node name="Observable7" parent="Path3D3/PathFollow3D" instance=ExtResource("2_bfp2s")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 0)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Path3D3"]
+libraries = {
+"": SubResource("AnimationLibrary_gv3ui")
+}
+autoplay = "back_and_forth"
+
+[node name="Path3D4" type="Path3D" parent="."]
+transform = Transform3D(0.650469, 0, -0.759533, 0, 1, 0, 0.759533, 0, 0.650469, 6.59825, 0, -0.53365)
+curve = SubResource("Curve3D_5a4ia")
+
+[node name="PathFollow3D" type="PathFollow3D" parent="Path3D4"]
+transform = Transform3D(-4.37113e-08, 0, -0.999999, 0, 1, 0, 0.999999, 0, -4.37113e-08, 0, 0, 0)
+
+[node name="Observable7" parent="Path3D4/PathFollow3D" instance=ExtResource("2_bfp2s")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 0)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Path3D4"]
+libraries = {
+"": SubResource("AnimationLibrary_gv3ui")
+}
+autoplay = "back_and_forth"
 
 [node name="Controls" type="PanelContainer" parent="." node_paths=PackedStringArray("vision_cone")]
 offset_left = 13.0
@@ -145,6 +264,31 @@ min_value = -90.0
 max_value = 90.0
 
 [node name="HSeparator5" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ObserverPosition" type="VBoxContainer" parent="Controls/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Controls/MarginContainer/VBoxContainer/ObserverPosition"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Controls/MarginContainer/VBoxContainer/ObserverPosition/HBoxContainer2"]
+layout_mode = 2
+text = "Observer Position:as"
+
+[node name="ObserverPositionValueLabel" type="Label" parent="Controls/MarginContainer/VBoxContainer/ObserverPosition/HBoxContainer2" node_paths=PackedStringArray("range_control")]
+layout_mode = 2
+script = ExtResource("5_fs3bv")
+range_control = NodePath("../../ObserverPositionSlider")
+
+[node name="ObserverPositionSlider" type="HSlider" parent="Controls/MarginContainer/VBoxContainer/ObserverPosition"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -15.0
+max_value = 15.0
+
+[node name="HSeparator6" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
 [node name="Label2" type="Label" parent="Controls/MarginContainer/VBoxContainer"]
