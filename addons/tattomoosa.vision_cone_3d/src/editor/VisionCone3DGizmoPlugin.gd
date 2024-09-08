@@ -96,7 +96,7 @@ func _set_handle(
 			)
 			var local_pos := vc.to_local(world_pos)
 			var radius := local_pos.x
-			vc.angle = abs(rad_to_deg(atan(radius / vc.range)))
+			vc.angle = abs(rad_to_deg(atan(radius / vc.range))) * 2
 	gizmo.get_node_3d().update_gizmos()
 
 func _has_gizmo(node: Node3D):

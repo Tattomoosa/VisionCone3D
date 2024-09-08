@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://cmgl8607thxgg" path="res://addons/tattomoosa.vision_cone_3d/examples/common/observable.tscn" id="2_bfp2s"]
 [ext_resource type="PackedScene" uid="uid://mqvpirrmppob" path="res://addons/tattomoosa.vision_cone_3d/examples/common/blocker.tscn" id="3_0fs8r"]
 [ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/VisionConeDemoControls.gd" id="4_sd4gn"]
-[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/common/ValueLabel.gd" id="5_fs3bv"]
+[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/common/ui/ValueLabel.gd" id="5_fs3bv"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_dqtte"]
 
@@ -19,7 +19,8 @@ size = 12.261
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 9.98095)
 
 [node name="VisionCone3D" parent="Observer" index="0"]
-angle = 32.2659
+range = 24.3599
+angle = 24.3209
 
 [node name="Observable" parent="." instance=ExtResource("2_bfp2s")]
 
@@ -62,6 +63,85 @@ theme_override_constants/margin_bottom = 5
 [node name="VBoxContainer" type="VBoxContainer" parent="Controls/MarginContainer"]
 layout_mode = 2
 
+[node name="Angle" type="VBoxContainer" parent="Controls/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Controls/MarginContainer/VBoxContainer/Angle"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Controls/MarginContainer/VBoxContainer/Angle/HBoxContainer2"]
+layout_mode = 2
+text = "Angle:"
+
+[node name="AngleValueLabel" type="Label" parent="Controls/MarginContainer/VBoxContainer/Angle/HBoxContainer2" node_paths=PackedStringArray("range_control")]
+layout_mode = 2
+script = ExtResource("5_fs3bv")
+range_control = NodePath("../../AngleSlider")
+
+[node name="AngleSlider" type="HSlider" parent="Controls/MarginContainer/VBoxContainer/Angle"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.1
+max_value = 90.0
+step = 0.1
+value = 45.0
+
+[node name="HSeparator2" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Range" type="VBoxContainer" parent="Controls/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Controls/MarginContainer/VBoxContainer/Range"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Controls/MarginContainer/VBoxContainer/Range/HBoxContainer2"]
+layout_mode = 2
+text = "Range:"
+
+[node name="RangeValueLabel" type="Label" parent="Controls/MarginContainer/VBoxContainer/Range/HBoxContainer2" node_paths=PackedStringArray("range_control")]
+layout_mode = 2
+script = ExtResource("5_fs3bv")
+range_control = NodePath("../../RangeSlider")
+
+[node name="RangeSlider" type="HSlider" parent="Controls/MarginContainer/VBoxContainer/Range"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 40.0
+step = 0.5
+value = 20.0
+
+[node name="HSeparator4" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ObserverRotation" type="VBoxContainer" parent="Controls/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Controls/MarginContainer/VBoxContainer/ObserverRotation"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Controls/MarginContainer/VBoxContainer/ObserverRotation/HBoxContainer2"]
+layout_mode = 2
+text = "Observer Rotation:"
+
+[node name="ObserverRotationValueLabel" type="Label" parent="Controls/MarginContainer/VBoxContainer/ObserverRotation/HBoxContainer2" node_paths=PackedStringArray("range_control")]
+layout_mode = 2
+script = ExtResource("5_fs3bv")
+range_control = NodePath("../../ObserverRotationSlider")
+
+[node name="ObserverRotationSlider" type="HSlider" parent="Controls/MarginContainer/VBoxContainer/ObserverRotation"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -90.0
+max_value = 90.0
+
+[node name="HSeparator5" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
 [node name="Label2" type="Label" parent="Controls/MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Vision Test Mode"
@@ -72,40 +152,39 @@ layout_mode = 2
 [node name="RaycastCenterCheckBox" type="CheckBox" parent="Controls/MarginContainer/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-button_pressed = true
 button_group = SubResource("ButtonGroup_dqtte")
 text = "Center"
 
 [node name="RaycastScatterCheckBox" type="CheckBox" parent="Controls/MarginContainer/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+button_pressed = true
 button_group = SubResource("ButtonGroup_dqtte")
 text = "Scatter"
 
-[node name="HSeparator" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
+[node name="ProbesPerFrameSlider" type="VBoxContainer" parent="Controls/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="Controls/MarginContainer/VBoxContainer"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="Controls/MarginContainer/VBoxContainer/ProbesPerFrameSlider"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Controls/MarginContainer/VBoxContainer/HBoxContainer2"]
+[node name="Label" type="Label" parent="Controls/MarginContainer/VBoxContainer/ProbesPerFrameSlider/HBoxContainer2"]
 layout_mode = 2
-text = "Max Raycasts Per Shape:"
+text = "Max Probes Per Shape:"
 
-[node name="RaycastPerFrameValueLabel" type="Label" parent="Controls/MarginContainer/VBoxContainer/HBoxContainer2" node_paths=PackedStringArray("range_control")]
+[node name="RaycastPerFrameValueLabel" type="Label" parent="Controls/MarginContainer/VBoxContainer/ProbesPerFrameSlider/HBoxContainer2" node_paths=PackedStringArray("range_control")]
 layout_mode = 2
 script = ExtResource("5_fs3bv")
 range_control = NodePath("../../RaycastsPerFrameSlider")
 
-[node name="RaycastsPerFrameSlider" type="HSlider" parent="Controls/MarginContainer/VBoxContainer"]
+[node name="RaycastsPerFrameSlider" type="HSlider" parent="Controls/MarginContainer/VBoxContainer/ProbesPerFrameSlider"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 min_value = 1.0
-value = 1.0
+value = 10.0
 
-[node name="HSeparator2" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
-visible = false
+[node name="HSeparator3" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
 [editable path="Observer"]
