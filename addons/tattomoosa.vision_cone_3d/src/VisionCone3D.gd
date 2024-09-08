@@ -228,7 +228,7 @@ class ConeArea3D extends Area3D:
 		sphere_shape.radius = get_cone_radius(distance, angle / 2)
 		var sphere_query := PhysicsShapeQueryParameters3D.new()
 		sphere_query.shape = sphere_shape
-		var forward := PhysicsUtil.get_forward(self)
+		var forward := -global_basis.z
 		var sphere_origin := global_position + (forward * distance)
 		sphere_query.transform.origin = sphere_origin
 		sphere_query.collision_mask = collision_mask
@@ -236,10 +236,14 @@ class ConeArea3D extends Area3D:
 		for info in intersect_info:
 			var body : Node3D = info.collider
 			var shape_index : int = info.shape
-			var s := PhysicsUtil.get_collision_shape_in_body(body, shape_index)
-			if shape == s:
+			var shape_node = _get_collision_shape_node_in_body(body, shape_index)
+			if shape == shape_node:
 				return true
 		return false
+
+	func _get_collision_shape_node_in_body(body: PhysicsBody3D, body_shape_index: int) -> Node3D:
+		var body_shape_owner : int = body.shape_find_owner(body_shape_index)
+		return body.shape_owner_get_owner(body_shape_owner)
 
 	func _get_end_radius() -> float:
 		return get_cone_radius(range, angle / 2)
@@ -253,7 +257,7 @@ class ConeArea3D extends Area3D:
 		body_shape_index: int,
 		_local_shape_index: int
 	) -> void:
-		var shape := PhysicsUtil.get_collision_shape_in_body(body, body_shape_index)
+		var shape := _get_collision_shape_node_in_body(body, body_shape_index)
 		_shapes_in_bounding_box.push_back(shape)
 		_shape_body_map[shape] = body
 
@@ -263,12 +267,13 @@ class ConeArea3D extends Area3D:
 		body_shape_index: int,
 		local_shape_index: int
 	) -> void:
-		var shape := PhysicsUtil.get_collision_shape_in_body(body, body_shape_index)
+		var shape := _get_collision_shape_node_in_body(body, body_shape_index)
 		_shapes_in_bounding_box.erase(shape)
 		_shape_body_map.erase(shape)
 		if _shapes_in_cone.has(shape):
 			_shapes_in_cone.erase(shape)
 			shape_exited_cone.emit(shape)
+
 
 class VisionTestProber:
 	static var _rng := RandomNumberGenerator.new()
@@ -290,7 +295,7 @@ class VisionTestProber:
 		shape_probe_mesh = collision_shape_.shape.get_debug_mesh()
 		body = body_
 	
-	func probe(to: Vector3) -> ProbeResult:
+	func probe(to: Vector3, shape_local_target: Vector3) -> ProbeResult:
 		# Collide with bodies OR the environment
 		var raycast_collision_mask := vision_cone.collision_mask | vision_cone.collision_environment_mask
 		# can store reference to this?
@@ -301,7 +306,12 @@ class VisionTestProber:
 			to,
 			raycast_collision_mask)
 		var result := space_state.intersect_ray(query)
-		return ProbeResult.new(from, to, result.collider if result.has("collider") else null)
+		return ProbeResult.new(
+			from,
+			to,
+			shape_local_target,
+			result.collider if result.has("collider") else null
+		)
 	
 	func _random_points_on_probe_mesh(count: int) -> Array[Vector3]:
 		var surface_count := shape_probe_mesh.get_surface_count()
@@ -317,7 +327,7 @@ class VisionTestProber:
 		if !probe_results.is_empty():
 			var last := probe_results[-1]
 			if last.visible:
-				sample_points.append(collision_shape.to_local(last.end))
+				sample_points.append(last.shape_local_target)
 				random_point_count -= 1
 		sample_points.append_array(_random_points_on_probe_mesh(random_point_count))
 		return sample_points
@@ -333,8 +343,8 @@ class VisionTestProber:
 
 		probe_results = []
 		visible = false
-		for point in sample_points:
-			var global_point := collision_shape.global_position + (collision_shape.global_basis * point)
+		for shape_local_point in sample_points:
+			var global_point := collision_shape.global_position + (collision_shape.global_basis * shape_local_point)
 			# TODO this check should happen in _get_scatter_points maybe?
 			# ensure more points actually intersect objects midway through?
 			# not sure it matters...
@@ -342,7 +352,7 @@ class VisionTestProber:
 			if !vision_cone._cone_area.point_within_cone(global_point):
 				continue
 
-			var probe_result := probe(global_point)
+			var probe_result := probe(global_point, shape_local_point)
 			probe_results.push_back(probe_result)
 
 			# found body we were looking for
@@ -357,19 +367,20 @@ class VisionTestProber:
 	class ProbeResult:
 		var start : Vector3
 		var end : Vector3
-		# var visible : bool
+		var shape_local_target : Vector3
 		var collider : Node3D
 		var visible : bool = false
 
 		func _init(
 			start_: Vector3,
 			end_: Vector3,
+			shape_local_target_: Vector3,
 			collider_: Node3D
 		):
 			start = start_
 			end = end_
+			shape_local_target = shape_local_target_
 			collider = collider_
-			# visible = visible_
 
 class VisionConeDebugVisualizer3D extends Node3D:
 
