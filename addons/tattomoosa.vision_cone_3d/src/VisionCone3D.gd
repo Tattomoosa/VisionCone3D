@@ -6,52 +6,49 @@ extends Node3D
 ## Simulates a cone vision shape and also checks to make sure
 ## object is unobstructed
 
-# static var debug_draw_all := false
-static var _rng := RandomNumberGenerator.new()
+## Emitted when a body is newly visible
+signal body_visible(body: Node3D)
+
+## Emitted when a body is newly hidden
+signal body_hidden(body: Node3D)
+
+## Emitted when the cone shape changes
+signal shape_changed
 
 enum VisionTestMode{
+	## Samples the center of each CollisionShape
 	SAMPLE_CENTER,
+	## Samples random vertices of each CollisionShape, up to `vision_test_shape_probe_count` for hidden objects
+	## If shape was visible at last frame, tests last successful probe position first
 	SAMPLE_RANDOM_VERTICES
 }
-
-#region signals
-signal body_visible(body: Node3D)
-signal body_hidden(body: Node3D)
-#endregion signals
-
-#region export_variables
 
 ## Distance that can be seen (the height of the vision cone)
 @warning_ignore("shadowed_global_identifier")
 @export var range := 20.0:
-	set(v):
-		range = v
-		_update_shape()
+	set(v): range = v; _update_shape()
+
 ## Angle of the vision cone
 @export var angle := 45.0:
-	set(v):
-		angle = v
-		_update_shape()
+	set(v): angle = v; _update_shape()
+
 ## Whether or not to draw debug information
 @export var debug_draw := false:
 	set(v):
 		debug_draw = v
-		_draw_bounds()
-		if !v:
-			for shape in _shapes_in_bounding_box:
-				Debug.delete_line(str(self) + ":" + str(shape))
+		_debug_visualizer.visible = v
 
 @export_group("Vision Test", "vision_test_")
 @export var vision_test_mode : VisionTestMode
-@export_group("Collision", "collision_")
-@export var vision_test_max_raycast_per_frame : int = 5
+@export var vision_test_shape_probe_count : int = 5
 
+@export_group("Collision", "collision_")
 ## Collision layer of the vision cone
 @export_flags_3d_physics var collision_layer : int = 1:
 	set(value):
 		collision_layer = value
 		if is_node_ready():
-			_area.collision_layer = collision_layer
+			_cone_area.collision_layer = collision_layer
 
 ## Collision mask of the vision cone (Tracked and considered "visible")
 ## 
@@ -60,245 +57,335 @@ signal body_hidden(body: Node3D)
 	set(value):
 		collision_mask = value
 		if is_node_ready():
-			_area.collision_mask = collision_mask
+			_cone_area.collision_mask = collision_mask
 
 ## Collision mask of what objects can obscure visible objects (but don't need to
-## be tracked as visible)
+## be tracked and probed to determine visibility)
 ## 
-## Generally useful for the environment
+## Generally useful for the environment but any node where you don't care
+## if its seen or not can be on this layer.
+## This layer only affects raycasts, which can collide with any layer
+## in either `collision_mask` or `collision_environment_mask`
 @export_flags_3d_physics var collision_environment_mask : int = 1
 
-#endregion export_variables
-
-#region public_variables
+## Radius at the wide end of the vision cone
 var end_radius: float:
-	get: return _end_radius
+	get: return _cone_area.end_radius
 
-var _shape : BoxShape3D
-var _collision_shape : CollisionShape3D
-var _area : Area3D
+## Determines whether shapes are inside the cone or not
+var _cone_area := ConeArea3D.new()
 
+## List of shapes currently in cone
+var _shapes_in_cone : Array[Node3D] = []
+
+## List of shapes currently visible
 var _shapes_visible : Array[Node3D] = []
-var _shapes_in_bounding_box : Array[Node3D] = []
 
-var _bounds_renderer : MeshInstance3D
-var _end_radius: float = 0.0
-#endregion private_variables
+# { Node3D "shape" : VisionTestProber }
+var _shape_probe_data : Dictionary = {}
 
-#region constants
-const DEBUG_VISION_CONE_COLOR := Color(1, 1, 0, 0.005)
-const DEBUG_RAY_COLOR_IS_VISIBLE := Color(Color.GREEN, 1.0)
-const DEBUG_RAY_COLOR_IS_VISIBLE_TEST := Color(Color.GREEN, 0.1)
-const DEBUG_RAY_COLOR_IN_CONE := Color(Color.RED, 0.1)
-# const DEBUG_RAY_COLOR_IN_BOUNDING_BOX := Color(Color.WHITE, 0.01)
-#endregion constants
+var _debug_visualizer : VisionConeDebugVisualizer3D
 
-#region engine_callbacks
 func _init() -> void:
-	_area = Area3D.new()
-	_area.collision_layer = collision_layer
-	_area.collision_mask = collision_mask
-	add_child(_area)
-	_collision_shape = CollisionShape3D.new()
-	_area.add_child(_collision_shape)
-	_shape = BoxShape3D.new()
-	_collision_shape.shape = _shape
+	add_child(_cone_area)
 
 	# debug
-	_bounds_renderer = MeshInstance3D.new()
-	_bounds_renderer.mesh = CylinderMesh.new()
-	_bounds_renderer.mesh.material = _cone_visualizer_material()
-	add_child(_bounds_renderer, false, INTERNAL_MODE_BACK)
+	_debug_visualizer = VisionConeDebugVisualizer3D.new(self)
 
 	_update_shape()
 
-	# TODO - maintain a list of shapes to check for body visibility
-	_area.body_shape_entered.connect(_on_body_shape_entered)
-	_area.body_shape_exited.connect(_on_body_shape_exited)
-
-	Debug.toggle_button(
-		"Show Vision Cones",
-		func(value: bool) -> void:
-			debug_draw = value
-	)
+	_cone_area.collision_layer = collision_layer
+	_cone_area.collision_mask = collision_mask
+	_cone_area.shape_entered_cone.connect(_on_shape_entered_cone)
+	_cone_area.shape_exited_cone.connect(_on_shape_exited_cone)
 
 func _physics_process(_delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
-	for shape in _shapes_in_bounding_box:
+	for shape in _shapes_in_cone:
 		_update_shape_visibility(shape)
-#endregion engine_callbacks
 
-#region public_methods
-func _find_random_points_on_shape_debug_mesh(mesh: ArrayMesh) -> Array[Vector3]:
-	var surface_count := mesh.get_surface_count()
-	var vertices = mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
-	var points : Array[Vector3] = []
-	for point in vision_test_max_raycast_per_frame:
-		points.push_back(vertices[_rng.randi_range(0, vertices.size() - 1)])
-	return points
-
-func point_in_vision_cone(global_point: Vector3) -> bool:
-	var body_pos := -global_basis.z
-	var pos := global_point - global_position
-	var angle_to := pos.angle_to(body_pos)
-	var angle_deg := rad_to_deg(angle_to)
-	return angle_deg <= angle
-
-func shape_in_vision_cone(shape: Node3D) -> bool:
-	var distance := (shape.global_position - global_position).length()
-	var space_state := get_world_3d().direct_space_state
-	var sphere_shape := SphereShape3D.new()
-	sphere_shape.radius = get_cone_radius(distance, angle)
-	var sphere_query := PhysicsShapeQueryParameters3D.new()
-	sphere_query.shape = sphere_shape
-	var forward := PhysicsUtil.get_forward(self)
-	var sphere_origin := global_position + (forward * distance)
-	sphere_query.transform.origin = sphere_origin
-	sphere_query.collision_mask = collision_mask
-	var intersect_info := space_state.intersect_shape(sphere_query)
-	for info in intersect_info:
-		var body : Node3D = info.collider
-		var shape_index : int = info.shape
-		var s := PhysicsUtil.get_collision_shape_in_body(body, shape_index)
-		if shape == s:
-			return true
-	return false
-#endregion public_methods
-
-#region private_methods
 func _update_shape_visibility(shape: Node3D) -> void:
-	var body := shape.get_parent()
-
-	if debug_draw:
-		Debug.delete_line(str(self) + ":" + str(shape))
-		for i in 5:
-			Debug.delete_line(str(self) + ":" + str(shape) + str(i))
-
-
-	# not in cone
-	if !shape_in_vision_cone(shape):
-		if _shapes_visible.has(shape):
-			_shapes_visible.erase(shape)
+	if !_cone_area.shape_in_vision_cone(shape):
+		_shapes_visible.erase(shape)
 		return
-	
-	var sample_points : Array[Vector3] = [Vector3.ZERO]
-	match vision_test_mode:
-		VisionTestMode.SAMPLE_CENTER:
-			pass
-			# sample_points = [Vector3.ZERO]
-		VisionTestMode.SAMPLE_RANDOM_VERTICES: 
-			var mesh : ArrayMesh = shape.shape.get_debug_mesh() 
-			sample_points.append_array(_find_random_points_on_shape_debug_mesh(mesh))
-			# for _i in vision_test_max_raycast_per_frame:
-				# sample_points.push_back(_find_random_points_on_shape_debug_mesh(mesh))
-	var debug_index := 0
-	for point in sample_points:
-		var global_point := shape.global_position + (shape.global_basis * point)
 
-		var result := _raycast_collision(global_point)
-
-		# obstructed
-		if result != body:
-			if debug_draw: Debug.draw_line(global_position, global_point, DEBUG_RAY_COLOR_IN_CONE, str(self) + ":" + str(shape) + str(debug_index))
-			continue
-
-		# visible
+	var prober := _shape_probe_data.get_or_add(shape, VisionTestProber.new(self, shape))
+	prober.update()
+	if prober.visible:
 		if !_shapes_visible.has(shape):
 			_shapes_visible.push_back(shape)
-		if debug_draw:
-			Debug.draw_line(global_position, global_point, DEBUG_RAY_COLOR_IS_VISIBLE_TEST, str(self) + ":" + str(shape) + str(debug_index))
-			Debug.draw_line(global_position, shape.global_position, DEBUG_RAY_COLOR_IS_VISIBLE, str(self) + ":" + str(shape))
-		return
-
-	if _shapes_visible.has(shape):
+	else:
 		_shapes_visible.erase(shape)
-
-func _draw_bounds() -> void:
-	var m : CylinderMesh = _bounds_renderer.mesh
-	# TODO free/add meshinstance when toggled
-	if !debug_draw:
-		m.bottom_radius = 0
-		m.height = 0
-		_bounds_renderer.hide()
-		return
-
-	_bounds_renderer.show()
-	# _end_radius = _get_cone_end_radius()
-	m.top_radius = 0
-	m.bottom_radius = end_radius
-	m.height = range
-	_bounds_renderer.rotation_degrees = Vector3(90, 0, 0)
-	_bounds_renderer.position.z = -range / 2
+	_shape_probe_data[shape] = prober
 
 func _update_shape() -> void:
+	_cone_area.range = range
+	_cone_area.angle = angle
 	update_gizmos()
-	notify_property_list_changed()
-	_end_radius = _get_cone_end_radius()
-	var end_diameter := end_radius * 2
-	_shape.size = Vector3(end_diameter, end_diameter, range)
-	_collision_shape.position.z = -range / 2
-	_draw_bounds()
+	shape_changed.emit()
 
-func _on_body_shape_entered(
-	_body_rid: RID,
-	body: Node3D,
-	body_shape_index: int,
-	_local_index: int
-) -> void:
-	var body_shape_node := PhysicsUtil.get_collision_shape_in_body(body, body_shape_index)
-	_shapes_in_bounding_box.push_back(body_shape_node)
+func _on_shape_entered_cone(shape: Node3D):
+	_shapes_in_cone.push_back(shape)
+func _on_shape_exited_cone(shape: Node3D):
+	_shapes_in_cone.erase(shape)
+	_shape_probe_data.erase(shape)
+#endregion VisionCone3D
 
-func _on_body_shape_exited(
-	_body_rid: RID,
-	body: Node3D,
-	body_shape_index: int,
-	_local_index: int
-) -> void:
-	var body_shape_node := PhysicsUtil.get_collision_shape_in_body(body, body_shape_index)
-	_shapes_in_bounding_box.erase(body_shape_node)
-	if debug_draw:
-		Debug.delete_line(str(self) + ":" + str(body_shape_node))
+class ConeArea3D extends Area3D:
+	signal shape_entered_cone(collision_shape: Node3D)
+	signal shape_exited_cone(collision_shape: Node3D)
+	signal cone_changed()
 
-func _raycast_collision(world_pos: Vector3) -> Node3D:
-	# Collide with bodies OR the environment
-	var raycast_collision_mask := collision_mask | collision_environment_mask
-	var space_state := get_world_3d().direct_space_state
-	var query := PhysicsRayQueryParameters3D.create(global_position, world_pos, raycast_collision_mask)
-	var result := space_state.intersect_ray(query)
-	if !result.has("collider"):
-		return null
-	else:
-		return result.collider
+	var range : float = 20.0:
+		set(value): range = value; _update_shape()
+	var angle : float = 45.0:
+		set(value): angle = value; _update_shape()
 
-func _get_cone_end_radius() -> float:
-	return get_cone_radius(range, angle)
-#endregion private_methods
+	var end_radius : float:
+		get:
+			return _get_end_radius()
 
-#region static_methods
-static func _cone_visualizer_material(albedo_color: Color = DEBUG_VISION_CONE_COLOR) -> StandardMaterial3D:
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = albedo_color
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	return mat
+	var _collision_shape := CollisionShape3D.new()
+	var _shapes_in_bounding_box : Array[Node3D] = []
+	var _shapes_in_cone : Array[Node3D] = []
 
-static func get_cone_radius(height: float, angle_deg: float) -> float:
-	return height * tan(deg_to_rad(angle_deg))
-#endregion
 
-# class VisionTestRaycastFrameData:
-# 	var collision_shape: CollisionShape3D
-# 	var last_frame_visible: bool
-# 	var last_frame_visible_at_local_point: Vector3
-# 	var test_mode: VisionTestMode = VisionTestMode.SAMPLE_CENTER
-# 	var max_probe_count : int
+	func _init() -> void:
+		add_child(_collision_shape)
+		_collision_shape.shape = BoxShape3D.new()
+		body_shape_entered.connect(_on_body_shape_entered)
+		body_shape_exited.connect(_on_body_shape_exited)
+	
+	func _update_shape():
+		var end_diameter = end_radius * 2
+		_collision_shape.shape.size = Vector3(end_diameter, end_diameter, range)
+		_collision_shape.position.z = -range / 2
+		cone_changed.emit()
 
-# 	func _init(collision_shape_: CollisionShape3D, test_mode: VisionTestMode, max_probe_count_: int):
-# 		collision_shape = collision_shape_
+	func _physics_process(delta: float) -> void:
+		for shape in _shapes_in_bounding_box:
+			if shape_in_vision_cone(shape):
+				if !_shapes_in_cone.has(shape):
+					_shapes_in_cone.push_back(shape)
+					shape_entered_cone.emit(shape)
+	
+	func point_within_angle(global_point: Vector3) -> bool:
+		var body_pos := -global_basis.z
+		var pos := global_point - global_position
+		var angle_to := pos.angle_to(body_pos)
+		var angle_deg := rad_to_deg(angle_to)
+		return angle_deg <= angle
 
-# 	class RaycastInfo:
-# 		var start : Vector3
-# 		var end : Vector3
-# 		var visible : bool
+	func shape_in_vision_cone(shape: Node3D) -> bool:
+		var distance := (shape.global_position - global_position).length()
+		var space_state := get_world_3d().direct_space_state
+		var sphere_shape := SphereShape3D.new()
+		sphere_shape.radius = get_cone_radius(distance, angle)
+		var sphere_query := PhysicsShapeQueryParameters3D.new()
+		sphere_query.shape = sphere_shape
+		var forward := PhysicsUtil.get_forward(self)
+		var sphere_origin := global_position + (forward * distance)
+		sphere_query.transform.origin = sphere_origin
+		sphere_query.collision_mask = collision_mask
+		var intersect_info := space_state.intersect_shape(sphere_query)
+		for info in intersect_info:
+			var body : Node3D = info.collider
+			var shape_index : int = info.shape
+			var s := PhysicsUtil.get_collision_shape_in_body(body, shape_index)
+			if shape == s:
+				return true
+		return false
+
+	func _get_end_radius() -> float:
+		return get_cone_radius(range, angle)
+
+	static func get_cone_radius(height: float, angle_deg: float) -> float:
+		return height * tan(deg_to_rad(angle_deg))
+
+	func _on_body_shape_entered(
+		_body_rid: RID,
+		body: Node3D,
+		body_shape_index: int,
+		local_shape_index: int
+	) -> void:
+		var shape := PhysicsUtil.get_collision_shape_in_body(body, body_shape_index)
+		_shapes_in_bounding_box.push_back(shape)
+
+	func _on_body_shape_exited(
+		_body_rid: RID,
+		body: Node3D,
+		body_shape_index: int,
+		local_shape_index: int
+	) -> void:
+		var shape := PhysicsUtil.get_collision_shape_in_body(body, body_shape_index)
+		_shapes_in_bounding_box.erase(shape)
+		if _shapes_in_cone.has(shape):
+			_shapes_in_cone.erase(shape)
+			shape_exited_cone.emit(shape)
+
+class VisionTestProber:
+	static var _rng := RandomNumberGenerator.new()
+	var vision_cone : VisionCone3D
+	var collision_shape: CollisionShape3D
+	var shape_probe_mesh: ArrayMesh
+
+	var visible: bool = false
+	var probe_results: Array[ProbeResult]
+
+	func _init(vision_cone_: VisionCone3D, collision_shape_: CollisionShape3D):
+		vision_cone = vision_cone_
+		collision_shape = collision_shape_
+		shape_probe_mesh = collision_shape_.shape.get_debug_mesh()
+	
+	func probe(to: Vector3) -> ProbeResult:
+		# Collide with bodies OR the environment
+		var raycast_collision_mask := vision_cone.collision_mask | vision_cone.collision_environment_mask
+		# can store reference to this?
+		var space_state := vision_cone.get_world_3d().direct_space_state
+		var from := vision_cone.global_position
+		var query := PhysicsRayQueryParameters3D.create(
+			from,
+			to,
+			raycast_collision_mask)
+		var result := space_state.intersect_ray(query)
+		return ProbeResult.new(from, to, result.collider if result.has("collider") else null)
+	
+	func _random_points_on_probe_mesh(count: int) -> Array[Vector3]:
+		var surface_count := shape_probe_mesh.get_surface_count()
+		var vertices = shape_probe_mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		var points : Array[Vector3] = []
+		for point in count:
+			points.push_back(vertices[_rng.randi_range(0, vertices.size() - 1)])
+		return points
+	
+	
+	func update():
+		var body := collision_shape.get_parent()
+		var sample_points : Array[Vector3] = []
+		match vision_cone.vision_test_mode:
+			VisionTestMode.SAMPLE_CENTER:
+				pass
+				sample_points = [Vector3.ZERO]
+			VisionTestMode.SAMPLE_RANDOM_VERTICES: 
+				var last := probe_results[-1]
+				var random_point_count := vision_cone.vision_test_shape_probe_count
+				if last.visible:
+					sample_points.append(collision_shape.to_local(last.end))
+					random_point_count -= 1
+				sample_points.append_array(_random_points_on_probe_mesh(random_point_count))
+		probe_results = []
+		visible = false
+		for point in sample_points:
+			var global_point := collision_shape.global_position + (collision_shape.global_basis * point)
+			var probe_result := probe(global_point)
+			probe_results.push_back(probe_result)
+
+			# found body we were looking for
+			if probe_result.collider == body:
+				probe_result.visible = true
+				visible = true
+				return
+
+
+
+	class ProbeResult:
+		var start : Vector3
+		var end : Vector3
+		# var visible : bool
+		var collider : Node3D
+		var visible : bool = false
+
+		func _init(
+			start_: Vector3,
+			end_: Vector3,
+			collider_: Node3D
+		):
+			start = start_
+			end = end_
+			collider = collider_
+			# visible = visible_
+
+class VisionConeDebugVisualizer3D extends Node3D:
+
+	const DEBUG_VISION_CONE_COLOR := Color(1, 1, 0, 0.005)
+	const DEBUG_RAY_COLOR_IS_VISIBLE := Color(Color.GREEN, 1.0)
+	const DEBUG_RAY_COLOR_IS_VISIBLE_TEST := Color(Color.GREEN, 0.1)
+	const DEBUG_RAY_COLOR_IN_CONE := Color(Color.RED, 0.1)
+
+	var vision_cone : VisionCone3D
+
+	var _bounds_renderer : MeshInstance3D
+	var _probe_renderer : DebugProbeLineRenderer
+
+	func _init(vision_cone_: VisionCone3D):
+		# attach
+		vision_cone = vision_cone_
+		vision_cone.shape_changed.connect(update_cone_shape)
+		vision_cone.add_child(self, true, INTERNAL_MODE_BACK)
+
+		# create cone renderer
+		_bounds_renderer = MeshInstance3D.new()
+		_bounds_renderer.mesh = CylinderMesh.new()
+		_bounds_renderer.mesh.material = make_visualizer_material()
+		add_child(_bounds_renderer, false, INTERNAL_MODE_BACK)
+
+		_probe_renderer = DebugProbeLineRenderer.new()
+		_probe_renderer.probe_data = vision_cone._shape_probe_data
+		add_child(_probe_renderer)
+
+	static func make_visualizer_material(albedo_color: Color = DEBUG_VISION_CONE_COLOR) -> StandardMaterial3D:
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = albedo_color
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		return mat
+	
+	func update_cone_shape() -> void:
+		var m : CylinderMesh = _bounds_renderer.mesh
+		m.top_radius = 0
+		m.bottom_radius = vision_cone.end_radius
+		m.height = vision_cone.range
+		_bounds_renderer.rotation_degrees = Vector3(90, 0, 0)
+		_bounds_renderer.position.z = -vision_cone.range / 2
+	
+	class DebugProbeLineRenderer extends MeshInstance3D:
+		const ProbeResult := VisionTestProber.ProbeResult
+		var probe_data: Dictionary
+		var probe_success_material : StandardMaterial3D
+		var probe_failure_material : StandardMaterial3D
+
+		func _init():
+			mesh = ImmediateMesh.new()
+			probe_success_material = VisionConeDebugVisualizer3D.make_visualizer_material(
+				VisionConeDebugVisualizer3D.DEBUG_RAY_COLOR_IS_VISIBLE)
+			probe_failure_material = VisionConeDebugVisualizer3D.make_visualizer_material(
+				VisionConeDebugVisualizer3D.DEBUG_RAY_COLOR_IN_CONE)
+
+
+		func _physics_process(_delta: float):
+			mesh.clear_surfaces()
+			if probe_data.is_empty():
+				return
+			var successful : Array[ProbeResult] = []
+			var failed : Array[ProbeResult] = []
+
+			for prober in probe_data.values():
+				for probe in prober.probe_results:
+					if probe.visible:
+						successful.push_back(probe)
+					else:
+						failed.push_back(probe)
+			
+			_add_probe_lines_surface(successful)
+			mesh.surface_set_material(0, probe_success_material)
+			_add_probe_lines_surface(failed)
+			mesh.surface_set_material(1, probe_failure_material)
+		
+		func _add_probe_lines_surface(probes: Array[ProbeResult]):
+			mesh.surface_begin(Mesh.PRIMITIVE_LINES)
+			for probe in probes:
+				mesh.surface_add_vertex(to_local(probe.start))
+				mesh.surface_add_vertex(to_local(probe.end))
+			mesh.surface_end()

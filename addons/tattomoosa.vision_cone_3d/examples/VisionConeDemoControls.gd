@@ -11,7 +11,7 @@ func _ready():
 	raycast_scatter_checkbox.toggled.connect(_set_scatter)
 	raycast_count_slider.value_changed.connect(
 		func(value: float):
-			vision_cone.vision_test_max_raycast_per_frame = value
+			vision_cone.vision_test_shape_probe_count = value
 	)
 	_set_center(raycast_center_checkbox.button_pressed)
 	_set_center(raycast_scatter_checkbox.button_pressed)

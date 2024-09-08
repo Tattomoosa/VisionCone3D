@@ -19,7 +19,7 @@ size = 12.261
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 9.98095)
 
 [node name="VisionCone3D" parent="Observer" index="0"]
-vision_test_max_raycast_per_frame = 5
+angle = 32.2659
 
 [node name="Observable" parent="." instance=ExtResource("2_bfp2s")]
 
