@@ -41,6 +41,7 @@ enum VisionTestMode{
 @export_group("Vision Test", "vision_test_")
 @export var vision_test_mode : VisionTestMode
 @export var vision_test_shape_probe_count : int = 5
+@export var vision_test_ignore_bodies : Array[PhysicsBody3D]
 
 @export_group("Collision", "collision_")
 ## Collision layer of the vision cone
@@ -118,10 +119,12 @@ func _update_shape() -> void:
 func get_visible_bodies() -> Array[PhysicsBody3D]:
 	var bodies := []
 	for prober: VisionTestProber in _shape_probe_data.values():
-		bodies.push_back(prober.collision_shape.get_parent())
+		bodies.push_back(prober.body)
 	return bodies
 
 func _on_shape_entered_cone(shape: Node3D, body: PhysicsBody3D):
+	if body in vision_test_ignore_bodies:
+		return
 	_shape_probe_data[shape] = VisionTestProber.new(self, shape, body)
 
 func _on_shape_exited_cone(shape: Node3D):
@@ -172,16 +175,26 @@ class ConeArea3D extends Area3D:
 					_shapes_in_cone.push_back(shape)
 					shape_entered_cone.emit(shape, _shape_body_map[shape])
 			else:
-				# _shapes_in_cone.erase(shape)
+				_shapes_in_cone.erase(shape)
 				shape_exited_cone.emit(shape)
 	
+	## Whether or not a given point in global space is within the cone's
+	## angle. 
 	func point_within_angle(global_point: Vector3) -> bool:
 		var body_pos := -global_basis.z
 		var pos := global_point - global_position
 		var angle_to := pos.angle_to(body_pos)
 		var angle_deg := rad_to_deg(angle_to)
-		# return angle_deg <= (angle * 2)
-		return angle_deg <= angle
+		return angle_deg <= (angle / 2)
+	
+	func point_within_cone(global_point: Vector3) -> bool:
+		var local_point := to_local(global_point)
+		var z_distance := position.z - local_point.z
+		if z_distance < 0 or z_distance > range:
+			if z_distance < 0:
+				print(z_distance)
+			return false
+		return point_within_angle(global_point)
 
 	func shape_in_vision_cone(shape: Node3D) -> bool:
 		var distance := (shape.global_position - global_position).length()
@@ -300,7 +313,8 @@ class VisionTestProber:
 			# TODO this check should happen in _get_scatter_points maybe?
 			# ensure more points actually intersect objects midway through?
 			# not sure it matters...
-			if !vision_cone._cone_area.point_within_angle(global_point):
+			# if !vision_cone._cone_area.point_within_angle(global_point):
+			if !vision_cone._cone_area.point_within_cone(global_point):
 				continue
 
 			var probe_result := probe(global_point)

@@ -11,16 +11,21 @@
 [node name="VisionCone3dDemo" type="Node3D"]
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 10.8989, 0)
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 12.2026, 0)
+projection = 1
 fov = 100.7
-size = 12.261
+size = 28.134
 
 [node name="Observer" parent="." instance=ExtResource("1_5m65v")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 9.98095)
 
-[node name="VisionCone3D" parent="Observer" index="0"]
+[node name="VisionCone3D" parent="Observer" index="0" node_paths=PackedStringArray("vision_test_ignore_bodies")]
 range = 24.3599
 angle = 24.3209
+vision_test_ignore_bodies = [NodePath("..")]
+
+[node name="CollisionShape3D" parent="Observer" index="2"]
+disabled = true
 
 [node name="Observable" parent="." instance=ExtResource("2_bfp2s")]
 
