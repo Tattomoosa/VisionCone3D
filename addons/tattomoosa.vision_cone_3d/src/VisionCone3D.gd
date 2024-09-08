@@ -84,6 +84,8 @@ var _shapes_in_cone : Array[Node3D] = []
 
 # { Node3D "shape" : VisionTestProber }
 var _shape_probe_data : Dictionary = {}
+# { Node3D "body" : Node3D "shape" }
+var _body_shape_data : Dictionary = {}
 
 var _debug_visualizer : VisionConeDebugVisualizer3D
 
@@ -102,13 +104,27 @@ func _init() -> void:
 func _physics_process(_delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
-	for shape in _cone_area.shapes_in_cone:
-		_update_shape_visibility(shape)
+	for body in _body_shape_data:
+		var shapes : Array[Node3D] = _body_shape_data[body]
+		var body_was_visible_last_frame := false
+		var body_is_visible := false
 
-func _update_shape_visibility(shape: Node3D) -> void:
-	var prober : VisionTestProber = _shape_probe_data.get(shape)
-	if prober:
-		prober.update()
+		for shape in shapes:
+			var prober : VisionTestProber = _shape_probe_data[shape]
+			if prober.visible:
+				body_was_visible_last_frame = true
+			prober.update()
+			if prober.visible:
+				body_is_visible = true
+
+		var body_visibility_changed := body_is_visible != body_was_visible_last_frame
+
+		if body_visibility_changed:
+			if body_is_visible:
+				body_visible.emit(body)
+			else:
+				body_hidden.emit(body)
+
 
 func _update_shape() -> void:
 	_cone_area.range = range
@@ -126,8 +142,17 @@ func _on_shape_entered_cone(shape: Node3D, body: PhysicsBody3D):
 	if body in vision_test_ignore_bodies:
 		return
 	_shape_probe_data[shape] = VisionTestProber.new(self, shape, body)
+	var shape_list : Array[Node3D] = _body_shape_data.get_or_add(body, [] as Array[Node3D])
+	shape_list.push_back(shape)
 
 func _on_shape_exited_cone(shape: Node3D):
+	var prober : VisionTestProber = _shape_probe_data.get(shape)
+	if prober:
+		var body : Node3D = prober.body
+		var shape_list : Array[Node3D] = _body_shape_data.get(body, [] as Array[Node3D])
+		shape_list.erase(shape)
+		if shape_list.is_empty():
+			_body_shape_data.erase(body)
 	_shapes_in_cone.erase(shape)
 	_shape_probe_data.erase(shape)
 
