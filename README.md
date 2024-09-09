@@ -1,3 +1,5 @@
+![Editor View](./readme_images/editor_view.png)
+
 <h1 style="text-align:center;">
 VisionCone3D
 </h1>
@@ -5,6 +7,8 @@ VisionCone3D
 <div style="text-align:center;">
 Easy to use configurable 3D vision cone node for Godot.
 </div>
+
+![Stress Test](./readme_images/stress_test.png)
 
 ## Features
 
