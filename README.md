@@ -13,9 +13,9 @@
 		<br/>
 		Simple but configurable 3D vision cone node for <a href="https://godotengine.org/">Godot</a>
 	</p>
-	<img src="./readme_images/demo.png" height="160">
-	<img src="./readme_images/stress_test.png" height="160">
-	<img src="./readme_images/editor_view.png" height="160">
+	<img src="./readme_images/demo.png" height="140">
+	<img src="./readme_images/stress_test.png" height="140">
+	<img src="./readme_images/editor_view.png" height="140">
 	<br/>
 	<br/>
 	<br/>
