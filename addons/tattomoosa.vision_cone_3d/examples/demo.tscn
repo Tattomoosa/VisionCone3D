@@ -1,12 +1,9 @@
-[gd_scene load_steps=17 format=3 uid="uid://7xeocy4p43x6"]
+[gd_scene load_steps=15 format=3 uid="uid://7xeocy4p43x6"]
 
 [ext_resource type="PackedScene" uid="uid://brqivkckug8uc" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/observer.tscn" id="1_5m65v"]
 [ext_resource type="PackedScene" uid="uid://cmgl8607thxgg" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/observable.tscn" id="2_bfp2s"]
+[ext_resource type="PackedScene" uid="uid://cdbsstpvtrvhd" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/vision_cone_controls.tscn" id="2_cx0nb"]
 [ext_resource type="PackedScene" uid="uid://mqvpirrmppob" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/blocker.tscn" id="3_0fs8r"]
-[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/VisionConeDemoControls.gd" id="4_sd4gn"]
-[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/ui/ValueLabel.gd" id="5_fs3bv"]
-
-[sub_resource type="ButtonGroup" id="ButtonGroup_dqtte"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_vlnew"]
 size = Vector3(3, 3, 1)
@@ -80,183 +77,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875939, 9.98095)
 [node name="VisionCone3D" parent="Observer" index="0"]
 range = 19.909
 angle = 55.0
+vision_test_shape_max_probe_count = 1
+vision_test_max_bodies = 10
 
 [node name="CollisionShape3D" parent="Observer" index="2"]
 disabled = true
 
-[node name="Controls" type="PanelContainer" parent="." node_paths=PackedStringArray("vision_cone", "cameras")]
-offset_left = 13.0
-offset_top = 14.0
-offset_right = 308.0
-offset_bottom = 392.0
-script = ExtResource("4_sd4gn")
+[node name="VisionConeControls" parent="." node_paths=PackedStringArray("vision_cone", "cameras") instance=ExtResource("2_cx0nb")]
 vision_cone = NodePath("../Observer/VisionCone3D")
 cameras = [NodePath("../Cameras/TopDownCamera"), NodePath("../Cameras/AngledCamera")]
-
-[node name="MarginContainer" type="MarginContainer" parent="Controls"]
-layout_mode = 2
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Controls/MarginContainer"]
-layout_mode = 2
-
-[node name="Angle" type="VBoxContainer" parent="Controls/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="HBoxContainer2" type="HBoxContainer" parent="Controls/MarginContainer/VBoxContainer/Angle"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Controls/MarginContainer/VBoxContainer/Angle/HBoxContainer2"]
-layout_mode = 2
-text = "Angle:"
-
-[node name="AngleValueLabel" type="Label" parent="Controls/MarginContainer/VBoxContainer/Angle/HBoxContainer2" node_paths=PackedStringArray("range_control")]
-layout_mode = 2
-script = ExtResource("5_fs3bv")
-range_control = NodePath("../../AngleSlider")
-
-[node name="AngleSlider" type="HSlider" parent="Controls/MarginContainer/VBoxContainer/Angle"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-min_value = 0.1
-max_value = 90.0
-step = 0.1
-value = 45.0
-
-[node name="HSeparator2" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="Range" type="VBoxContainer" parent="Controls/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="HBoxContainer2" type="HBoxContainer" parent="Controls/MarginContainer/VBoxContainer/Range"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Controls/MarginContainer/VBoxContainer/Range/HBoxContainer2"]
-layout_mode = 2
-text = "Range:"
-
-[node name="RangeValueLabel" type="Label" parent="Controls/MarginContainer/VBoxContainer/Range/HBoxContainer2" node_paths=PackedStringArray("range_control")]
-layout_mode = 2
-script = ExtResource("5_fs3bv")
-range_control = NodePath("../../RangeSlider")
-
-[node name="RangeSlider" type="HSlider" parent="Controls/MarginContainer/VBoxContainer/Range"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-min_value = 1.0
-max_value = 40.0
-step = 0.5
-value = 20.0
-
-[node name="HSeparator4" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="ObserverRotation" type="VBoxContainer" parent="Controls/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="HBoxContainer2" type="HBoxContainer" parent="Controls/MarginContainer/VBoxContainer/ObserverRotation"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Controls/MarginContainer/VBoxContainer/ObserverRotation/HBoxContainer2"]
-layout_mode = 2
-text = "Observer Rotation:"
-
-[node name="ObserverRotationValueLabel" type="Label" parent="Controls/MarginContainer/VBoxContainer/ObserverRotation/HBoxContainer2" node_paths=PackedStringArray("range_control")]
-layout_mode = 2
-script = ExtResource("5_fs3bv")
-range_control = NodePath("../../ObserverRotationSlider")
-
-[node name="ObserverRotationSlider" type="HSlider" parent="Controls/MarginContainer/VBoxContainer/ObserverRotation"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-min_value = -90.0
-max_value = 90.0
-
-[node name="HSeparator5" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="ObserverPosition" type="VBoxContainer" parent="Controls/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="HBoxContainer2" type="HBoxContainer" parent="Controls/MarginContainer/VBoxContainer/ObserverPosition"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Controls/MarginContainer/VBoxContainer/ObserverPosition/HBoxContainer2"]
-layout_mode = 2
-text = "Observer Position:as"
-
-[node name="ObserverPositionValueLabel" type="Label" parent="Controls/MarginContainer/VBoxContainer/ObserverPosition/HBoxContainer2" node_paths=PackedStringArray("range_control")]
-layout_mode = 2
-script = ExtResource("5_fs3bv")
-range_control = NodePath("../../ObserverPositionSlider")
-
-[node name="ObserverPositionSlider" type="HSlider" parent="Controls/MarginContainer/VBoxContainer/ObserverPosition"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-min_value = -8.0
-max_value = 8.0
-step = 0.1
-
-[node name="HSeparator6" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label2" type="Label" parent="Controls/MarginContainer/VBoxContainer"]
-layout_mode = 2
-text = "Vision Test Mode"
-
-[node name="VisionTestMode" type="HBoxContainer" parent="Controls/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="RaycastCenterCheckBox" type="CheckBox" parent="Controls/MarginContainer/VBoxContainer/VisionTestMode"]
-unique_name_in_owner = true
-layout_mode = 2
-button_group = SubResource("ButtonGroup_dqtte")
-text = "Center"
-
-[node name="RaycastScatterCheckBox" type="CheckBox" parent="Controls/MarginContainer/VBoxContainer/VisionTestMode"]
-unique_name_in_owner = true
-layout_mode = 2
-button_pressed = true
-button_group = SubResource("ButtonGroup_dqtte")
-text = "Scatter"
-
-[node name="ProbesPerFrameSlider" type="VBoxContainer" parent="Controls/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="HBoxContainer2" type="HBoxContainer" parent="Controls/MarginContainer/VBoxContainer/ProbesPerFrameSlider"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Controls/MarginContainer/VBoxContainer/ProbesPerFrameSlider/HBoxContainer2"]
-layout_mode = 2
-text = "Max Probes Per Shape:"
-
-[node name="RaycastPerFrameValueLabel" type="Label" parent="Controls/MarginContainer/VBoxContainer/ProbesPerFrameSlider/HBoxContainer2" node_paths=PackedStringArray("range_control")]
-layout_mode = 2
-script = ExtResource("5_fs3bv")
-range_control = NodePath("../../RaycastsPerFrameSlider")
-
-[node name="RaycastsPerFrameSlider" type="HSlider" parent="Controls/MarginContainer/VBoxContainer/ProbesPerFrameSlider"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-min_value = 1.0
-value = 10.0
-
-[node name="HSeparator3" type="HSeparator" parent="Controls/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="SwitchCameraButton" type="Button" parent="Controls/MarginContainer/VBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Switch Camera"
 
 [node name="Observables" type="Node3D" parent="."]
 

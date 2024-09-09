@@ -10,6 +10,7 @@ extends PanelContainer
 @onready var range_slider : Slider = %RangeSlider
 @onready var rotation_slider : Slider = %ObserverRotationSlider
 @onready var position_slider : Slider = %ObserverPositionSlider
+@onready var max_bodies_slider : Slider = %MaxBodiesSlider
 @onready var switch_camera_button : Button = %SwitchCameraButton
 
 func _ready():
@@ -20,6 +21,7 @@ func _ready():
 	range_slider.value_changed.connect(func(value: float): vision_cone.range = value)
 	rotation_slider.value_changed.connect(func(value: float): vision_cone.get_parent().rotation_degrees.y = -value)
 	position_slider.value_changed.connect(func(value: float): vision_cone.get_parent().position.x = value)
+	max_bodies_slider.value_changed.connect(func(value: float): vision_cone.vision_test_max_bodies = value)
 	if cameras.is_empty():
 		switch_camera_button.hide()
 	else:
@@ -41,13 +43,25 @@ func _ready():
 						return
 		)
 
-	vision_cone.vision_test_shape_max_probe_count = raycast_count_slider.value
-	vision_cone.angle = angle_slider.value
-	vision_cone.range = range_slider.value
-	vision_cone.get_parent().rotation_degrees.y = -rotation_slider.value
-	vision_cone.get_parent().position.x = position_slider.value
+	# vision_cone.vision_test_shape_max_probe_count = raycast_count_slider.value
+	# vision_cone.angle = angle_slider.value
+	angle_slider.value = vision_cone.angle 
+	range_slider.value = vision_cone.range 
+	max_bodies_slider.value = vision_cone.vision_test_max_bodies
+	raycast_count_slider.value = vision_cone.vision_test_shape_max_probe_count 
+
+	# vision_cone.range = range_slider.value
+	if vision_cone.get_parent() is CharacterBody3D:
+		vision_cone.get_parent().rotation_degrees.y = -rotation_slider.value
+		vision_cone.get_parent().position.x = position_slider.value
+	else:
+		rotation_slider.get_parent().hide()
+		position_slider.get_parent().hide()
+
 	_set_center(raycast_center_checkbox.button_pressed)
 	_set_scatter(raycast_scatter_checkbox.button_pressed)
+
+	size.y = 0
 
 func _set_center(value: bool):
 	if !value:

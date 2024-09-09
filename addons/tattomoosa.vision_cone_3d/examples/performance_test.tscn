@@ -1,32 +1,61 @@
-[gd_scene load_steps=3 format=3 uid="uid://b54xp226qbtu4"]
+[gd_scene load_steps=7 format=3 uid="uid://b54xp226qbtu4"]
 
 [ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/VisionConePerformanceTest.gd" id="1_g1nob"]
 [ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/src/VisionCone3D.gd" id="2_w4wy6"]
+[ext_resource type="PackedScene" uid="uid://cdbsstpvtrvhd" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/vision_cone_controls.tscn" id="3_l1lfj"]
 
-[node name="PerformanceTest" type="Node3D"]
+[sub_resource type="Animation" id="Animation_el1nw"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("VisionCone3D:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_j7dk2"]
+resource_name = "rotate"
+length = 10.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("VisionCone3D:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 5, 10),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, -0.261799, 0), Vector3(0, 0.261799, 0), Vector3(0, -0.261799, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_b7ah6"]
+_data = {
+"RESET": SubResource("Animation_el1nw"),
+"rotate": SubResource("Animation_j7dk2")
+}
+
+[node name="PerformanceTest" type="Node3D" node_paths=PackedStringArray("vision_cone")]
 script = ExtResource("1_g1nob")
-observable_count = 100
-size = Vector3(12, 12, 12)
+vision_cone = NodePath("VisionCone3D")
+observable_count = 500
+size = Vector3(10, 10, 10)
+collision_body_type = 2
 
 [node name="VisionCone3D" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 15)
 script = ExtResource("2_w4wy6")
 debug_draw = true
-
-[node name="VisionCone3D2" type="Node3D" parent="."]
-transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -15, 0, 0)
-script = ExtResource("2_w4wy6")
-monitoring = false
-
-[node name="VisionCone3D3" type="Node3D" parent="."]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 15, 0, 0)
-script = ExtResource("2_w4wy6")
-monitoring = false
-
-[node name="VisionCone3D4" type="Node3D" parent="."]
-transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, -15)
-script = ExtResource("2_w4wy6")
-monitoring = false
+vision_test_mode = 1
+vision_test_shape_max_probe_count = 10
+vision_test_max_bodies = 100
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 17.3701, 0)
@@ -42,3 +71,20 @@ unique_name_in_owner = true
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_b7ah6")
+}
+autoplay = "rotate"
+
+[node name="VisionConeControls" parent="." node_paths=PackedStringArray("vision_cone") instance=ExtResource("3_l1lfj")]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -313.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 366.0
+grow_horizontal = 0
+vision_cone = NodePath("../VisionCone3D")

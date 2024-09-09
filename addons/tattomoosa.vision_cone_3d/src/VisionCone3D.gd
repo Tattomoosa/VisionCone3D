@@ -41,8 +41,7 @@ enum VisionTestMode{
 	set(v):
 		debug_draw = v
 		if debug_draw and !_debug_visualizer:
-				_debug_visualizer = VisionConeDebugVisualizer3D.new(self)
-				_debug_visualizer.update_cone_shape()
+			add_child(VisionConeDebugVisualizer3D.new())
 		elif !debug_draw and _debug_visualizer:
 				_debug_visualizer.queue_free()
 
@@ -52,14 +51,8 @@ enum VisionTestMode{
 @export var vision_test_mode : VisionTestMode
 ## Maximum amount of shape probes (per shape, per frame)
 @export var vision_test_shape_max_probe_count : int = 5
-
-# TODO Should be user-configurable but not sure how it should function
-# Seems like the ideal would be to iterate objects differently
-# Go shape by shape, raycast, if visible remove from test list
-# if not visible, iterate again casting a different point.
-# This changes body visibility changed logic and means the
-# prober needs to update only a single point at a time
-# @export var vision_test_frame_max_probe_count : int = 100
+## Maximum number of bodies to check, per-frame
+@export var vision_test_max_bodies : int = 50
 
 ## List of bodies to ignore in vision probing
 ##
@@ -97,10 +90,10 @@ var end_radius: float:
 	get: return _cone_area.end_radius
 
 # Determines whether shapes are inside the cone or not
-var _cone_area : ConeArea3D
+var _cone_area : ConeArea3D = ConeArea3D.new()
 
 # List of shapes currently in cone
-var _shapes_in_cone : Array[Node3D]
+var _shapes_in_cone : Array[Node3D] = []
 
 # shape probes, mapped by collision shape
 # { Node3D "shape" : VisionTestProber }
@@ -109,47 +102,78 @@ var _shape_probe_data : Dictionary = {}
 # { Node3D "body" : Node3D "shape" }
 var _body_shape_data : Dictionary = {}
 
+var _last_probed_index : int = 0
+
 var _debug_visualizer : VisionConeDebugVisualizer3D
 
 func _init() -> void:
-	_cone_area = ConeArea3D.new()
-	_shapes_in_cone = []
 	add_child(_cone_area)
-
-	# debug
-	# if debug_draw:
-	# 	_debug_visualizer = VisionConeDebugVisualizer3D.new(self)
 	_update_shape()
+	# only true when copied
+	if _debug_visualizer:
+		_debug_visualizer.vision_cone = self
 
 	_cone_area.collision_layer = collision_layer
 	_cone_area.collision_mask = collision_mask
-	_cone_area.shape_entered_cone.connect(_on_shape_entered_cone)
-	_cone_area.shape_exited_cone.connect(_on_shape_exited_cone)
+	_cone_area.body_shape_entered.connect(_on_body_shape_entered)
+	_cone_area.body_shape_exited.connect(_on_body_shape_exited)
 
 func _physics_process(_delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 
-	for body in _body_shape_data:
-		var shapes : Array[Node3D] = _body_shape_data[body]
-		var body_was_visible_last_frame := false
-		var body_is_visible := false
+	var bodies_to_probe := _get_bodies_to_check_this_frame()
+	for body in bodies_to_probe:
+		_update_body_probes(body)
+	
+func _get_bodies_to_check_this_frame() -> Array: #[CollisionObject3D]:
+	var all_bodies := _body_shape_data.keys()
+	if all_bodies.is_empty():
+		return []
+	if all_bodies.size() < vision_test_max_bodies:
+		return all_bodies
+	var start_index := _last_probed_index + 1
+	var to_end := all_bodies.slice(start_index, start_index + vision_test_max_bodies)
+	var counted := to_end.size()
+	var end_index := min(vision_test_max_bodies - counted, start_index)
+	var from_start := all_bodies.slice(0, end_index)
+	_last_probed_index = from_start.size() - 1 if from_start.size() > 0 else start_index + counted
+	return (to_end + from_start)
 
-		for shape in shapes:
-			var prober : VisionTestProber = _shape_probe_data[shape]
-			if prober.visible:
-				body_was_visible_last_frame = true
-			prober.update()
-			if prober.visible:
-				body_is_visible = true
+	# var index_offset := start_index
+	# var indexes_to_check : Array[int] = []
+	# for i: int in min(vision_test_max_bodies, all_bodies.size()):
+	# 	var index := index_offset + i
+	# 	if index >= all_bodies.size():
+	# 		index_offset = -index + 1
+	# 		index = 0
+	# 	indexes_to_check.push_back(index)
+	# _last_probed_index = indexes_to_check[-1]
+	# var bodies_to_check : Array[CollisionObject3D]= []
+	# for i in indexes_to_check:
+	# 	bodies_to_check.push_back(all_bodies[i])
+	# return bodies_to_check
 
-		var body_visibility_changed := body_is_visible != body_was_visible_last_frame
+func _update_body_probes(body: CollisionObject3D):
+	var shapes : Array[Node3D] = _body_shape_data[body]
+	var body_was_visible_last_frame := false
+	var body_is_visible := false
 
-		if body_visibility_changed:
-			if body_is_visible:
-				body_sighted.emit(body)
-			else:
-				body_hidden.emit(body)
+	for shape in shapes:
+		var prober : VisionTestProber = _shape_probe_data[shape]
+		if prober.visible:
+			body_was_visible_last_frame = true
+		prober.update()
+		if prober.visible:
+			body_is_visible = true
+
+	var body_visibility_changed := body_is_visible != body_was_visible_last_frame
+
+	if body_visibility_changed:
+		if body_is_visible:
+			body_sighted.emit(body)
+		else:
+			body_hidden.emit(body)
 
 func _update_shape() -> void:
 	_cone_area.range = range
@@ -163,71 +187,62 @@ func get_visible_bodies() -> Array[PhysicsBody3D]:
 		bodies.push_back(prober.body)
 	return bodies
 
-func _on_shape_entered_cone(shape: Node3D, body: PhysicsBody3D):
-	if body in vision_test_ignore_bodies:
-		return
+func _get_collision_shape_node_in_body(body: PhysicsBody3D, body_shape_index: int) -> Node3D:
+	var body_shape_owner : int = body.shape_find_owner(body_shape_index)
+	return body.shape_owner_get_owner(body_shape_owner)
+
+func _on_body_shape_entered(
+	_body_rid: RID,
+	body: Node3D,
+	body_shape_index: int,
+	_local_shape_index: int,
+) -> void:
+	var shape := _get_collision_shape_node_in_body(body, body_shape_index)
 	_shape_probe_data[shape] = VisionTestProber.new(self, shape, body)
 	var shape_list : Array[Node3D] = _body_shape_data.get_or_add(body, [] as Array[Node3D])
 	shape_list.push_back(shape)
 
-func _on_shape_exited_cone(shape: Node3D):
-	var prober : VisionTestProber = _shape_probe_data.get(shape)
-	if prober:
-		var body : Node3D = prober.body
-		var shape_list : Array[Node3D] = _body_shape_data.get(body, [] as Array[Node3D])
-		shape_list.erase(shape)
-		if shape_list.is_empty():
-			_body_shape_data.erase(body)
+func _on_body_shape_exited(
+	_body_rid: RID,
+	body: Node3D,
+	body_shape_index: int,
+	_local_shape_index: int,
+) -> void:
+	var shape_list : Array[Node3D] = _body_shape_data.get(body, [] as Array[Node3D])
+	var shape := _get_collision_shape_node_in_body(body, body_shape_index)
+	shape_list.erase(shape)
+	if shape_list.is_empty():
+		_body_shape_data.erase(body)
 	_shapes_in_cone.erase(shape)
 	_shape_probe_data.erase(shape)
 
 #endregion VisionCone3D
 
 class ConeArea3D extends Area3D:
-	signal shape_entered_cone(collision_shape: Node3D)
-	signal shape_exited_cone(collision_shape: Node3D)
-	signal cone_changed()
-
 	var range : float = 20.0:
 		set(value): range = value; _update_shape()
 	var angle : float = 45.0:
 		set(value): angle = value; _update_shape()
-
 	var end_radius : float:
 		get:
 			return _get_end_radius()
-	var shapes_in_cone : Array[Node3D]:
-		get: return _shapes_in_cone
-
+	
+	var _cylinder_shape_mesh := CylinderMesh.new()
 	var _collision_shape := CollisionShape3D.new()
-	var _shapes_in_bounding_box : Array[Node3D] = []
-	var _shapes_in_cone : Array[Node3D] = []
-	# { Node3D (shape): PhysicsBody3D }
-	var _shape_body_map : Dictionary = {}
-	var _sphere_query_shape := SphereShape3D.new()
-
-	func _init() -> void:
-		add_child(_collision_shape)
-		_collision_shape.shape = CylinderShape3D.new()
+	
+	func _init():
+		_cylinder_shape_mesh.top_radius = 0
+		_cylinder_shape_mesh.rings = 1
+		_cylinder_shape_mesh.radial_segments = 16
 		_collision_shape.rotation_degrees.x = 90
-		body_shape_entered.connect(_on_body_shape_entered)
-		body_shape_exited.connect(_on_body_shape_exited)
+		add_child(_collision_shape)
+		_update_shape()
 	
 	func _update_shape():
-		_collision_shape.shape.radius = end_radius
-		_collision_shape.shape.height = range
+		_cylinder_shape_mesh.bottom_radius = _get_end_radius()
+		_cylinder_shape_mesh.height = range
 		_collision_shape.position.z = -range / 2
-		cone_changed.emit()
-
-	func _physics_process(delta: float) -> void:
-		for shape in _shapes_in_bounding_box:
-			if shape_in_vision_cone(shape):
-				if !_shapes_in_cone.has(shape):
-					_shapes_in_cone.push_back(shape)
-					shape_entered_cone.emit(shape, _shape_body_map[shape])
-			else:
-				_shapes_in_cone.erase(shape)
-				shape_exited_cone.emit(shape)
+		_collision_shape.shape = _cylinder_shape_mesh.create_convex_shape()
 	
 	## Whether or not a given point in global space is within the cone's
 	## angle. 
@@ -245,72 +260,11 @@ class ConeArea3D extends Area3D:
 			return false
 		return point_within_angle(global_point)
 
-	func shape_in_vision_cone(shape: Node3D) -> bool:
-		if point_within_cone(shape.global_position):
-			return true
-		var distance := (shape.global_position - global_position).length()
-		var space_state := get_world_3d().direct_space_state
-		_sphere_query_shape.radius = get_cone_radius(distance, angle / 2)
-		var sphere_query := PhysicsShapeQueryParameters3D.new()
-		sphere_query.shape = _sphere_query_shape
-		var forward := -global_basis.z
-		var sphere_origin := global_position + (forward * distance)
-		sphere_query.transform.origin = sphere_origin
-		sphere_query.collision_mask = collision_mask
-		sphere_query.collide_with_areas = false
-		sphere_query.collide_with_bodies = true
-
-		# This seems to make performance worse...
-		# for s in _shapes_in_bounding_box:
-		# 	if s == shape:
-		# 		continue
-		# 	var body : CollisionObject3D = _shape_body_map[shape]
-		# 	var rid := body.get_rid()
-		# 	if !sphere_query.exclude.has(body.get_rid()):
-		# 		sphere_query.exclude.push_back(body.get_rid())
-
-		var intersect_info := space_state.intersect_shape(sphere_query)
-		for info in intersect_info:
-			var body : Node3D = info.collider
-			var shape_index : int = info.shape
-			var shape_node = _get_collision_shape_node_in_body(body, shape_index)
-			if shape == shape_node:
-				return true
-		return false
-
-	func _get_collision_shape_node_in_body(body: PhysicsBody3D, body_shape_index: int) -> Node3D:
-		var body_shape_owner : int = body.shape_find_owner(body_shape_index)
-		return body.shape_owner_get_owner(body_shape_owner)
-
 	func _get_end_radius() -> float:
 		return get_cone_radius(range, angle / 2)
 
 	static func get_cone_radius(height: float, angle_deg: float) -> float:
 		return height * tan(deg_to_rad(angle_deg))
-
-	func _on_body_shape_entered(
-		_body_rid: RID,
-		body: Node3D,
-		body_shape_index: int,
-		_local_shape_index: int
-	) -> void:
-		var shape := _get_collision_shape_node_in_body(body, body_shape_index)
-		_shapes_in_bounding_box.push_back(shape)
-		_shape_body_map[shape] = body
-
-	func _on_body_shape_exited(
-		_body_rid: RID,
-		body: Node3D,
-		body_shape_index: int,
-		local_shape_index: int
-	) -> void:
-		var shape := _get_collision_shape_node_in_body(body, body_shape_index)
-		_shapes_in_bounding_box.erase(shape)
-		_shape_body_map.erase(shape)
-		if _shapes_in_cone.has(shape):
-			_shapes_in_cone.erase(shape)
-			shape_exited_cone.emit(shape)
-
 
 class VisionTestProber:
 	static var _rng := RandomNumberGenerator.new()
@@ -373,7 +327,6 @@ class VisionTestProber:
 		return sample_points
 		
 	func update():
-		var body := collision_shape.get_parent()
 		var sample_points : Array[Vector3] = []
 		match vision_cone.vision_test_mode:
 			VisionTestMode.SAMPLE_CENTER:
@@ -388,7 +341,6 @@ class VisionTestProber:
 			# TODO this check should happen in _get_scatter_points maybe?
 			# ensure more points actually intersect objects midway through?
 			# not sure it matters...
-			# if !vision_cone._cone_area.point_within_angle(global_point):
 			if !vision_cone._cone_area.point_within_cone(global_point):
 				continue
 
@@ -400,8 +352,6 @@ class VisionTestProber:
 				probe_result.visible = true
 				visible = true
 				return
-
-
 
 
 	class ProbeResult:
@@ -435,17 +385,12 @@ class VisionConeDebugVisualizer3D extends Node3D:
 	static var debug_ray_color_is_visible := DEBUG_RAY_COLOR_IS_VISIBLE
 	static var debug_ray_color_in_cone := DEBUG_RAY_COLOR_IS_OBSTRUCTED
 
-	var vision_cone : VisionCone3D
+	@export var vision_cone : VisionCone3D
 
 	var _bounds_renderer : MeshInstance3D
 	var _probe_renderer : DebugProbeLineRenderer
 
-	func _init(vision_cone_: VisionCone3D):
-		# attach
-		vision_cone = vision_cone_
-		vision_cone.shape_changed.connect(update_cone_shape)
-		vision_cone.add_child(self, true, INTERNAL_MODE_BACK)
-
+	func _init():
 		# create cone renderer
 		_bounds_renderer = MeshInstance3D.new()
 		_bounds_renderer.mesh = CylinderMesh.new()
@@ -453,8 +398,13 @@ class VisionConeDebugVisualizer3D extends Node3D:
 		add_child(_bounds_renderer, false, INTERNAL_MODE_BACK)
 
 		_probe_renderer = DebugProbeLineRenderer.new()
-		_probe_renderer.probe_data = vision_cone._shape_probe_data
 		add_child(_probe_renderer)
+	
+	func _ready():
+		vision_cone = get_parent()
+		_probe_renderer.probe_data = vision_cone._shape_probe_data
+		vision_cone.shape_changed.connect(update_cone_shape)
+		update_cone_shape()
 
 	static func make_visualizer_material(albedo_color: Color = debug_vision_cone_color) -> StandardMaterial3D:
 		var mat := StandardMaterial3D.new()
@@ -486,6 +436,8 @@ class VisionConeDebugVisualizer3D extends Node3D:
 				VisionConeDebugVisualizer3D.debug_ray_color_in_cone)
 
 		func _process(_delta: float):
+			if Engine.is_editor_hint():
+				return
 			mesh.clear_surfaces()
 			if probe_data.is_empty():
 				return
