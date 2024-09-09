@@ -1,40 +1,32 @@
-[gd_scene load_steps=4 format=3 uid="uid://b54xp226qbtu4"]
+[gd_scene load_steps=3 format=3 uid="uid://b54xp226qbtu4"]
 
-[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/src/VisionCone3D.gd" id="1_n7blr"]
-[ext_resource type="Script" path="res://performance_tests/performance_test.gd" id="1_ngq3s"]
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_4o3jc"]
+[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/VisionConePerformanceTest.gd" id="1_g1nob"]
+[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/src/VisionCone3D.gd" id="2_w4wy6"]
 
 [node name="PerformanceTest" type="Node3D"]
-script = ExtResource("1_ngq3s")
+script = ExtResource("1_g1nob")
 observable_count = 100
-size = Vector3(2, 2, 2)
+size = Vector3(12, 12, 12)
 
 [node name="VisionCone3D" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 15)
-script = ExtResource("1_n7blr")
+script = ExtResource("2_w4wy6")
 debug_draw = true
-vision_test_mode = 1
 
 [node name="VisionCone3D2" type="Node3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -15, 0, 0)
-script = ExtResource("1_n7blr")
+script = ExtResource("2_w4wy6")
+monitoring = false
 
 [node name="VisionCone3D3" type="Node3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 15, 0, 0)
-script = ExtResource("1_n7blr")
+script = ExtResource("2_w4wy6")
 monitoring = false
 
 [node name="VisionCone3D4" type="Node3D" parent="."]
 transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, -15)
-script = ExtResource("1_n7blr")
+script = ExtResource("2_w4wy6")
 monitoring = false
-
-[node name="StaticBody3D" type="StaticBody3D" parent="."]
-visible = false
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
-shape = SubResource("BoxShape3D_4o3jc")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 17.3701, 0)
@@ -45,7 +37,7 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="PhysicsFPS" type="Label" parent="Control"]
+[node name="DebugLabel" type="Label" parent="Control"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_right = 40.0

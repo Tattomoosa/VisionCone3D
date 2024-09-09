@@ -1,10 +1,10 @@
 [gd_scene load_steps=17 format=3 uid="uid://7xeocy4p43x6"]
 
-[ext_resource type="PackedScene" uid="uid://brqivkckug8uc" path="res://addons/tattomoosa.vision_cone_3d/examples/common/observer.tscn" id="1_5m65v"]
-[ext_resource type="PackedScene" uid="uid://cmgl8607thxgg" path="res://addons/tattomoosa.vision_cone_3d/examples/common/observable.tscn" id="2_bfp2s"]
-[ext_resource type="PackedScene" uid="uid://mqvpirrmppob" path="res://addons/tattomoosa.vision_cone_3d/examples/common/blocker.tscn" id="3_0fs8r"]
-[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/common/VisionConeDemoControls.gd" id="4_sd4gn"]
-[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/common/ui/ValueLabel.gd" id="5_fs3bv"]
+[ext_resource type="PackedScene" uid="uid://brqivkckug8uc" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/observer.tscn" id="1_5m65v"]
+[ext_resource type="PackedScene" uid="uid://cmgl8607thxgg" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/observable.tscn" id="2_bfp2s"]
+[ext_resource type="PackedScene" uid="uid://mqvpirrmppob" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/blocker.tscn" id="3_0fs8r"]
+[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/VisionConeDemoControls.gd" id="4_sd4gn"]
+[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/ui/ValueLabel.gd" id="5_fs3bv"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_dqtte"]
 

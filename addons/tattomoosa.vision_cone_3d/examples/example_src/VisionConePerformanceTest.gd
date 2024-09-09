@@ -8,7 +8,7 @@ var _observable_box_shape := BoxShape3D.new()
 var _observables : Array[Node3D] = []
 var _rng := RandomNumberGenerator.new()
 
-@onready var physics_fps_label : Label = %PhysicsFPS
+@onready var debug_label : Label = %DebugLabel
 
 func _ready():
 	if Engine.is_editor_hint():
@@ -31,7 +31,10 @@ func _physics_process(_delta: float) -> void:
 		var physics_frame_time := Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS)
 		var physics_max_frame_time : float = 1.0 / ProjectSettings.get_setting("physics/common/physics_ticks_per_second")
 
-		physics_fps_label.text = "Physics Frame: " + str(snapped(physics_frame_time / physics_max_frame_time, 0.01) * 100.0) + "%"
+		debug_label.text = \
+			"Observable Count: " + str(_observables.size()) +"\n" +\
+			"Physics Frame: " + str(snapped(physics_frame_time / physics_max_frame_time, 0.01) * 100.0) + "%\n" +\
+			""
 
 func _create_observable() -> Node3D:
 	var node := StaticBody3D.new()

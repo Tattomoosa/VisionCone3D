@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://batptfh4cwpfb"]
 
-[ext_resource type="PackedScene" uid="uid://cmgl8607thxgg" path="res://addons/tattomoosa.vision_cone_3d/examples/common/observable.tscn" id="1_p0bro"]
+[ext_resource type="PackedScene" uid="uid://cmgl8607thxgg" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/observable.tscn" id="1_p0bro"]
 
 [sub_resource type="Animation" id="Animation_c3q4w"]
 length = 0.001
