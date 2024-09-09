@@ -10,9 +10,9 @@ config_version=5
 
 [application]
 
-config/name="New Game Project"
+config/name="VisionCone3D"
 config/features=PackedStringArray("4.3", "GL Compatibility")
-config/icon="res://icon.svg"
+config/icon="res://addons/tattomoosa.vision_cone_3d/icons/VisionCone3D.svg"
 
 [editor_plugins]
 

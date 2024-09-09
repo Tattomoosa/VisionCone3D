@@ -2,9 +2,7 @@
 @icon("../icons/VisionCone3D.svg")
 class_name VisionCone3D
 extends Node3D
-
-## Simulates a cone vision shape and also checks to make sure
-## object is unobstructed
+## Provides 
 
 ## Emitted when a body is newly visible
 signal body_visible(body: Node3D)
@@ -301,10 +299,13 @@ class VisionTestProber:
 		# can store reference to this?
 		var space_state := vision_cone.get_world_3d().direct_space_state
 		var from := vision_cone.global_position
+		var exclude_bodies := vision_cone.vision_test_ignore_bodies.map(func(x): x.get_rid())
 		var query := PhysicsRayQueryParameters3D.create(
 			from,
 			to,
-			raycast_collision_mask)
+			raycast_collision_mask,
+			exclude_bodies
+		)
 		var result := space_state.intersect_ray(query)
 		return ProbeResult.new(
 			from,
@@ -384,9 +385,8 @@ class VisionTestProber:
 
 class VisionConeDebugVisualizer3D extends Node3D:
 
-	const DEBUG_VISION_CONE_COLOR := Color(1, 1, 0, 0.005)
-	const DEBUG_RAY_COLOR_IS_VISIBLE := Color(Color.GREEN, 1.0)
-	const DEBUG_RAY_COLOR_IS_VISIBLE_TEST := Color(Color.GREEN, 0.1)
+	const DEBUG_VISION_CONE_COLOR := Color(1, 1, 0, 0.02)
+	const DEBUG_RAY_COLOR_IS_VISIBLE := Color(Color.GREEN, 0.5)
 	const DEBUG_RAY_COLOR_IN_CONE := Color(Color.RED, 0.1)
 
 	var vision_cone : VisionCone3D

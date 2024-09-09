@@ -2,6 +2,16 @@
 
 [ext_resource type="PackedScene" uid="uid://cmgl8607thxgg" path="res://addons/tattomoosa.vision_cone_3d/examples/common/observable.tscn" id="1_p0bro"]
 
+[sub_resource type="Animation" id="Animation_c3q4w"]
+length = 0.001
+tracks/0/type = "position_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, -0.195181, 0, -1.77211)
+
 [sub_resource type="Animation" id="Animation_jctf1"]
 resource_name = "back_and_forth"
 length = 8.0
@@ -13,16 +23,6 @@ tracks/0/path = NodePath(".")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 2.03333, 1, 4, 0, 0, 6.03333, 1, -4, 0, 0, 8, 1, 0, 0, 0)
-
-[sub_resource type="Animation" id="Animation_c3q4w"]
-length = 0.001
-tracks/0/type = "position_3d"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = PackedFloat32Array(0, 1, -0.195181, 0, -1.77211)
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_al81f"]
 _data = {
