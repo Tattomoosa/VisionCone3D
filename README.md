@@ -51,11 +51,7 @@ Add the VisionCone3D node to your scene. Turn on debug draw to see it working. T
 
 These signals fire when a body is newly visible or newly hidden.
 
-```gdscript
-extends Node3D
-
-@export var vision_cone : VisionCone3D
-
+```python
 func _ready():
 	vision_cone.body_sighted.connect(_on_body_sighted)
 	vision_cone.body_hidden.connect(_on_body_hidden)
@@ -69,13 +65,8 @@ func _on_body_hidden(body: Node3D):
 
 ### Poll the currently visible bodies
 
-Get a list of the bodies which are currently visible
-
-```
-extends Node3D
-@export var vision_cone : VisionCone3D
-
-func _physics_process():
+```python
+func _process(): # doesn't need to be during a physics frame
 	print("bodies visible: ", vision_cone.get_visible_bodies())
 ```
 
@@ -85,9 +76,10 @@ func _physics_process():
 
 #### Center
 
-Samples only the center point (position) of the CollisionShape. Most efficient, least effective
+Samples only the center point (position) of the CollisionShape. Most efficient, but least effective
+as if the center of a shape is obscured it won't be seen.
 
-```js
+```python
 vision_cone.vision_test_mode = VisionCone3D.VisionTestMode.SAMPLE_CENTER
 ```
 
@@ -95,11 +87,11 @@ vision_cone.vision_test_mode = VisionCone3D.VisionTestMode.SAMPLE_CENTER
 
 Uses CollisionShape's `get_debug_mesh` to get a mesh representation of the CollisionShape,
 then samples random vertex points from that mesh.
-Effectiveness determined by the 
+Effectiveness determined by the max body count and max probe per shape count
 
 ```python
 vision_cone.vision_test_mode = VisionCone3D.VisionTestMode.SAMPLE_RANDOM_VERTICES
-vision_cone.vision_test_max_bodies = 50 # Bodies probed, per-frame
+vision_cone.vision_test_max_body_count = 50 # Bodies probed, per-frame
 vision_cone.vision_test_shape_max_probe_count = 5 # Probes per hidden shape
 ```
 

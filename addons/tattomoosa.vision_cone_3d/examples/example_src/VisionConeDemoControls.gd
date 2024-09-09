@@ -21,7 +21,7 @@ func _ready():
 	range_slider.value_changed.connect(func(value: float): vision_cone.range = value)
 	rotation_slider.value_changed.connect(func(value: float): vision_cone.get_parent().rotation_degrees.y = -value)
 	position_slider.value_changed.connect(func(value: float): vision_cone.get_parent().position.x = value)
-	max_bodies_slider.value_changed.connect(func(value: float): vision_cone.vision_test_max_bodies = value)
+	max_bodies_slider.value_changed.connect(func(value: float): vision_cone.vision_test_max_body_count = value)
 	if cameras.is_empty():
 		switch_camera_button.hide()
 	else:
@@ -47,7 +47,7 @@ func _ready():
 	# vision_cone.angle = angle_slider.value
 	angle_slider.value = vision_cone.angle 
 	range_slider.value = vision_cone.range 
-	max_bodies_slider.value = vision_cone.vision_test_max_bodies
+	max_bodies_slider.value = vision_cone.vision_test_max_body_count
 	raycast_count_slider.value = vision_cone.vision_test_shape_max_probe_count 
 
 	# vision_cone.range = range_slider.value

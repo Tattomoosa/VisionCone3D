@@ -60,15 +60,21 @@ enum VisionTestMode{
 
 ## Which VisionTestMode to use to determine if a shape is visible
 @export var vision_test_mode : VisionTestMode = VisionTestMode.SAMPLE_RANDOM_VERTICES
-## Maximum amount of shape probes (per shape, per frame)
-@export var vision_test_shape_max_probe_count : int = 5
-## Maximum number of bodies to check, per-frame
-@export var vision_test_max_bodies : int = 50
-
 ## List of bodies to ignore in vision probing
 ##
 ## Useful for eg the VisionCone3D's parent body
 @export var vision_test_ignore_bodies : Array[PhysicsBody3D]
+
+@export_subgroup("Per-frame probe settings")
+## Maximum amount of shape probes (per shape, per frame)
+@export var vision_test_shape_max_probe_count : int = 5
+## Maximum number of bodies to check, per-frame
+##
+## All bodies will still be evaluated as it will cycle through them
+## frame by frame, but `body_sighted` or `body_hidden` may lag behind
+## by some frames.
+@export var vision_test_max_body_count : int = 50
+
 
 @export_group("Collision", "collision_")
 ## Collision layer of the vision cone
@@ -143,30 +149,17 @@ func _get_bodies_to_check_this_frame() -> Array: # Array[CollisionObject3D]:
 	var all_bodies := _body_shape_data.keys()
 	if all_bodies.is_empty():
 		return []
-	if all_bodies.size() < vision_test_max_bodies:
+	if all_bodies.size() < vision_test_max_body_count:
 		_last_probed_index = -1
 		return all_bodies
-	var start_index := _last_probed_index + 1
-	var to_end := all_bodies.slice(start_index, start_index + vision_test_max_bodies)
-	var counted := to_end.size()
-	var end_index := min(vision_test_max_bodies - counted, start_index)
-	var from_start := all_bodies.slice(0, end_index)
-	_last_probed_index = from_start.size() - 1 if from_start.size() > 0 else start_index + counted
-	return (to_end + from_start)
 
-	# var index_offset := start_index
-	# var indexes_to_check : Array[int] = []
-	# for i: int in min(vision_test_max_bodies, all_bodies.size()):
-	# 	var index := index_offset + i
-	# 	if index >= all_bodies.size():
-	# 		index_offset = -index + 1
-	# 		index = 0
-	# 	indexes_to_check.push_back(index)
-	# _last_probed_index = indexes_to_check[-1]
-	# var bodies_to_check : Array[CollisionObject3D]= []
-	# for i in indexes_to_check:
-	# 	bodies_to_check.push_back(all_bodies[i])
-	# return bodies_to_check
+	var start_index := _last_probed_index + 1
+	var to_end := all_bodies.slice(start_index, start_index + vision_test_max_body_count)
+	var counted := to_end.size()
+	var end_index : int = min(vision_test_max_body_count - counted, start_index)
+	var from_start := all_bodies.slice(0, end_index)
+	_last_probed_index = from_start.size() - 1 if from_start.size() > 0 else start_index + counted - 1
+	return (to_end + from_start)
 
 func _update_body_probes(body: CollisionObject3D):
 	var shapes : Array[Node3D] = _body_shape_data[body]
@@ -366,7 +359,6 @@ class VisionTestProber:
 			if probe_result.collider == body:
 				probe_result.visible = true
 				visible = true
-				return
 
 
 	class ProbeResult:
