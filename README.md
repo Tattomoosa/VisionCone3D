@@ -113,6 +113,8 @@ The player/enemy/object can then hide behind the level, but no processing/probin
 
 ## The Future
 
+This asset is still in development. I have some ideas for further performance tuning options, and I'm open to feedback on the usability and how to improve documentation or workflows.
+
 ### 2D Support?
 
 I am open to adding a 2D version of this addon if there is sufficient interest.

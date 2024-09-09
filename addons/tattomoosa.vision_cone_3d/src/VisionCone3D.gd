@@ -4,6 +4,8 @@ class_name VisionCone3D
 extends Node3D
 ## Provides a "Vision Cone", a cone-shaped area where objects are then probed for visibility via ray casts
 
+#region VisionCone3D
+
 ## Emitted when a body is newly visible
 signal body_sighted(body: Node3D)
 
@@ -13,6 +15,7 @@ signal body_hidden(body: Node3D)
 ## Emitted when the cone shape changes
 signal shape_changed
 
+## Determines how visibility is probed for bodies within the cone area
 enum VisionTestMode{
 	## Samples the center of each CollisionShape
 	SAMPLE_CENTER,
@@ -30,6 +33,14 @@ enum VisionTestMode{
 @export var angle := 45.0:
 	set(v): angle = v; _update_shape()
 
+## If `true`, other monitoring areas can detect the cone area.
+@export var monitorable := true:
+	set(value):
+		monitorable = value
+		if _cone_area:
+			_cone_area.monitorable = value
+
+## If `true`, the cone area detects bodies or areas entering and exiting it.
 @export var monitoring := true:
 	set(value):
 		monitoring = value
@@ -121,6 +132,8 @@ func _init() -> void:
 func _physics_process(_delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
+	if !monitoring:
+		return
 
 	var bodies_to_probe := _get_bodies_to_check_this_frame()
 	for body in bodies_to_probe:
@@ -182,6 +195,7 @@ func _update_shape() -> void:
 	update_gizmos()
 	shape_changed.emit()
 
+## Returns a list of intersecting PhysicsBody3Ds. The overlapping body's CollisionObject3D.collision_layer must be part of this area's CollisionObject3D.collision_mask in order to be detected.
 func get_visible_bodies() -> Array[PhysicsBody3D]:
 	var bodies := []
 	for prober: VisionTestProber in _shape_probe_data.values():
