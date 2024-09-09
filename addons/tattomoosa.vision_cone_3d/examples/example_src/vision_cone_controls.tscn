@@ -14,10 +14,10 @@ script = ExtResource("1_vf8s6")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 2
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
@@ -70,64 +70,67 @@ max_value = 90.0
 step = 0.1
 value = 45.0
 
-[node name="Label2" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="VisionTestModeControls" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="MarginContainer/VBoxContainer/VisionTestModeControls"]
 layout_mode = 2
 text = "Vision Test Mode"
 
-[node name="VisionTestMode" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="VisionTestMode" type="HBoxContainer" parent="MarginContainer/VBoxContainer/VisionTestModeControls"]
 layout_mode = 2
 
-[node name="RaycastCenterCheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/VisionTestMode"]
+[node name="RaycastCenterCheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/VisionTestModeControls/VisionTestMode"]
 unique_name_in_owner = true
 layout_mode = 2
 button_group = SubResource("ButtonGroup_dqtte")
 text = "Center"
 
-[node name="RaycastScatterCheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/VisionTestMode"]
+[node name="RaycastScatterCheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/VisionTestModeControls/VisionTestMode"]
 unique_name_in_owner = true
 layout_mode = 2
 button_pressed = true
 button_group = SubResource("ButtonGroup_dqtte")
 text = "Scatter"
 
-[node name="ProbesPerFrame" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="ProbesPerFrame" type="VBoxContainer" parent="MarginContainer/VBoxContainer/VisionTestModeControls"]
 layout_mode = 2
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ProbesPerFrame"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer/VisionTestModeControls/ProbesPerFrame"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ProbesPerFrame/HBoxContainer2"]
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/VisionTestModeControls/ProbesPerFrame/HBoxContainer2"]
 layout_mode = 2
 text = "Max Probes Per Shape:"
 
-[node name="RaycastPerFrameValueLabel" type="Label" parent="MarginContainer/VBoxContainer/ProbesPerFrame/HBoxContainer2" node_paths=PackedStringArray("range_control")]
+[node name="RaycastPerFrameValueLabel" type="Label" parent="MarginContainer/VBoxContainer/VisionTestModeControls/ProbesPerFrame/HBoxContainer2" node_paths=PackedStringArray("range_control")]
 layout_mode = 2
 script = ExtResource("2_8lgvy")
 range_control = NodePath("../../RaycastsPerFrameSlider")
 
-[node name="RaycastsPerFrameSlider" type="HSlider" parent="MarginContainer/VBoxContainer/ProbesPerFrame"]
+[node name="RaycastsPerFrameSlider" type="HSlider" parent="MarginContainer/VBoxContainer/VisionTestModeControls/ProbesPerFrame"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 min_value = 1.0
 value = 10.0
 
-[node name="MaxBodies" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="MaxBodies" type="VBoxContainer" parent="MarginContainer/VBoxContainer/VisionTestModeControls"]
 layout_mode = 2
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MaxBodies"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer/VisionTestModeControls/MaxBodies"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/MaxBodies/HBoxContainer2"]
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/VisionTestModeControls/MaxBodies/HBoxContainer2"]
 layout_mode = 2
 text = "Max Bodies Per Frame:"
 
-[node name="MaxBodiesFrameValueLabel" type="Label" parent="MarginContainer/VBoxContainer/MaxBodies/HBoxContainer2" node_paths=PackedStringArray("range_control")]
+[node name="MaxBodiesFrameValueLabel" type="Label" parent="MarginContainer/VBoxContainer/VisionTestModeControls/MaxBodies/HBoxContainer2" node_paths=PackedStringArray("range_control")]
 layout_mode = 2
 script = ExtResource("2_8lgvy")
 range_control = NodePath("../../MaxBodiesSlider")
 
-[node name="MaxBodiesSlider" type="HSlider" parent="MarginContainer/VBoxContainer/MaxBodies"]
+[node name="MaxBodiesSlider" type="HSlider" parent="MarginContainer/VBoxContainer/VisionTestModeControls/MaxBodies"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -135,52 +138,55 @@ min_value = 1.0
 max_value = 500.0
 value = 11.0
 
-[node name="ObserverRotation" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ObserverRotation"]
+[node name="SwitchCameraButton" type="Button" parent="MarginContainer/VBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Switch Camera"
+
+[node name="ObserverRotation" type="VBoxContainer" parent="MarginContainer/VBoxContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ObserverRotation/HBoxContainer2"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer/VBoxContainer/ObserverRotation"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/VBoxContainer/ObserverRotation/HBoxContainer2"]
 layout_mode = 2
 text = "Observer Rotation:"
 
-[node name="ObserverRotationValueLabel" type="Label" parent="MarginContainer/VBoxContainer/ObserverRotation/HBoxContainer2" node_paths=PackedStringArray("range_control")]
+[node name="ObserverRotationValueLabel" type="Label" parent="MarginContainer/VBoxContainer/VBoxContainer/ObserverRotation/HBoxContainer2" node_paths=PackedStringArray("range_control")]
 layout_mode = 2
 script = ExtResource("2_8lgvy")
 range_control = NodePath("../../ObserverRotationSlider")
 
-[node name="ObserverRotationSlider" type="HSlider" parent="MarginContainer/VBoxContainer/ObserverRotation"]
+[node name="ObserverRotationSlider" type="HSlider" parent="MarginContainer/VBoxContainer/VBoxContainer/ObserverRotation"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 min_value = -90.0
 max_value = 90.0
 
-[node name="ObserverPosition" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="ObserverPosition" type="VBoxContainer" parent="MarginContainer/VBoxContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ObserverPosition"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer/VBoxContainer/ObserverPosition"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ObserverPosition/HBoxContainer2"]
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/VBoxContainer/ObserverPosition/HBoxContainer2"]
 layout_mode = 2
 text = "Observer Position:"
 
-[node name="ObserverPositionValueLabel" type="Label" parent="MarginContainer/VBoxContainer/ObserverPosition/HBoxContainer2" node_paths=PackedStringArray("range_control")]
+[node name="ObserverPositionValueLabel" type="Label" parent="MarginContainer/VBoxContainer/VBoxContainer/ObserverPosition/HBoxContainer2" node_paths=PackedStringArray("range_control")]
 layout_mode = 2
 script = ExtResource("2_8lgvy")
 range_control = NodePath("../../ObserverPositionSlider")
 
-[node name="ObserverPositionSlider" type="HSlider" parent="MarginContainer/VBoxContainer/ObserverPosition"]
+[node name="ObserverPositionSlider" type="HSlider" parent="MarginContainer/VBoxContainer/VBoxContainer/ObserverPosition"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 min_value = -8.0
 max_value = 8.0
 step = 0.1
-
-[node name="SwitchCameraButton" type="Button" parent="MarginContainer/VBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Switch Camera"

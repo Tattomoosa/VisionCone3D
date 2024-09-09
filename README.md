@@ -1,23 +1,38 @@
-![Editor View](./readme_images/editor_view.png)
-
-<h1 style="text-align:center;">
-VisionCone3D
-</h1>
-
 <div style="text-align:center;">
-Easy to use configurable 3D vision cone node for Godot.
+	<br/>
+	<br/>
+	<img src="addons/tattomoosa.vision_cone_3d/icons/VisionCone3D.svg" width="100">
+	<br/>
+	<div style="font-size: 80px;">VisionCone3D</div>
+	Simple but configurable 3D vision cone node for <a href="https://godotengine.org/">Godot</a>
+	<br/>
+	<br/>
+	<br/>
+	<img src="./readme_images/demo.png" height="180">
+	<img src="./readme_images/stress_test.png" height="180">
+	<img src="./readme_images/editor_view.png" height="180">
+	<br/>
+	<br/>
+	<br/>
 </div>
 
-![Stress Test](./readme_images/stress_test.png)
 
 ## Features
 
+### Basic Features
+
 * VisionCone3D - a node which tracks whether or not objects within its cone shape can be "seen"
 * Edit range/angle of cone via 3D viewport editor gizmo
-* Debug drawing logic included for cone and raycast visualization
+* Debug visualization to easily diagnose any issues
+
+### Advanced Performance-Tuning Features
+
+* Configurable vision probe settings
 * Ignore some physics bodies (eg the parent body)
 * Separate masks for bodies that can be seen and bodies that can only occlude
-* Configurable vision probe raycast settings
+
+<div style="text-align:center;">
+</div>
 
 ## Installation
 
