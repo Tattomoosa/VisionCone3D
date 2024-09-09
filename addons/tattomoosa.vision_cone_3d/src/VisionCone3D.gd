@@ -2,7 +2,7 @@
 @icon("../icons/VisionCone3D.svg")
 class_name VisionCone3D
 extends Node3D
-## Provides 
+## Provides a "Vision Cone", a cone-shaped area where objects are then probed for visibility via ray casts
 
 ## Emitted when a body is newly visible
 signal body_visible(body: Node3D)
@@ -16,7 +16,7 @@ signal shape_changed
 enum VisionTestMode{
 	## Samples the center of each CollisionShape
 	SAMPLE_CENTER,
-	## Samples random vertices of each CollisionShape, up to `vision_test_shape_probe_count` for hidden objects
+	## Samples random vertices of each CollisionShape, up to `vision_test_shape_max_probe_count` for hidden objects
 	## If shape was visible at last frame, tests last successful probe position first
 	SAMPLE_RANDOM_VERTICES
 }
@@ -37,8 +37,23 @@ enum VisionTestMode{
 		_debug_visualizer.visible = v
 
 @export_group("Vision Test", "vision_test_")
+
+## Which VisionTestMode to use to determine if a shape is visible
 @export var vision_test_mode : VisionTestMode
-@export var vision_test_shape_probe_count : int = 5
+## Maximum amount of shape probes (per shape, per frame)
+@export var vision_test_shape_max_probe_count : int = 5
+
+# TODO Should be user-configurable but not sure how it should function
+# Seems like the ideal would be to iterate objects differently
+# Go shape by shape, raycast, if visible remove from test list
+# if not visible, iterate again casting a different point.
+# This changes body visibility changed logic and means the
+# prober needs to update only a single point at a time
+# @export var vision_test_frame_max_probe_count : int = 100
+
+## List of bodies to ignore in vision probing
+##
+## Useful for eg the VisionCone3D's parent body
 @export var vision_test_ignore_bodies : Array[PhysicsBody3D]
 
 @export_group("Collision", "collision_")
@@ -71,23 +86,24 @@ enum VisionTestMode{
 var end_radius: float:
 	get: return _cone_area.end_radius
 
-## Determines whether shapes are inside the cone or not
-var _cone_area := ConeArea3D.new()
+# Determines whether shapes are inside the cone or not
+var _cone_area : ConeArea3D
 
-## List of shapes currently in cone
-var _shapes_in_cone : Array[Node3D] = []
+# List of shapes currently in cone
+var _shapes_in_cone : Array[Node3D]
 
-## List of shapes currently visible
-# var _shapes_visible : Array[Node3D] = []
-
+# shape probes, mapped by collision shape
 # { Node3D "shape" : VisionTestProber }
 var _shape_probe_data : Dictionary = {}
+# Shapes, mapped by body
 # { Node3D "body" : Node3D "shape" }
 var _body_shape_data : Dictionary = {}
 
 var _debug_visualizer : VisionConeDebugVisualizer3D
 
 func _init() -> void:
+	_cone_area = ConeArea3D.new()
+	_shapes_in_cone = []
 	add_child(_cone_area)
 
 	# debug
@@ -102,6 +118,7 @@ func _init() -> void:
 func _physics_process(_delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
+
 	for body in _body_shape_data:
 		var shapes : Array[Node3D] = _body_shape_data[body]
 		var body_was_visible_last_frame := false
@@ -122,7 +139,6 @@ func _physics_process(_delta: float) -> void:
 				body_visible.emit(body)
 			else:
 				body_hidden.emit(body)
-
 
 func _update_shape() -> void:
 	_cone_area.range = range
@@ -324,7 +340,7 @@ class VisionTestProber:
 	
 	func _get_scatter_points():
 		var sample_points : Array[Vector3] = []
-		var random_point_count := vision_cone.vision_test_shape_probe_count
+		var random_point_count := vision_cone.vision_test_shape_max_probe_count
 		if !probe_results.is_empty():
 			var last := probe_results[-1]
 			if last.visible:
@@ -385,9 +401,16 @@ class VisionTestProber:
 
 class VisionConeDebugVisualizer3D extends Node3D:
 
+	# TODO should be modifiable via EditorSettings
 	const DEBUG_VISION_CONE_COLOR := Color(1, 1, 0, 0.02)
+	# TODO should be modifiable via EditorSettings
 	const DEBUG_RAY_COLOR_IS_VISIBLE := Color(Color.GREEN, 0.5)
-	const DEBUG_RAY_COLOR_IN_CONE := Color(Color.RED, 0.1)
+	# TODO should be modifiable via EditorSettings
+	const DEBUG_RAY_COLOR_IS_OBSTRUCTED := Color(Color.RED, 0.2)
+
+	static var debug_vision_cone_color := DEBUG_VISION_CONE_COLOR
+	static var debug_ray_color_is_visible := DEBUG_RAY_COLOR_IS_VISIBLE
+	static var debug_ray_color_in_cone := DEBUG_RAY_COLOR_IS_OBSTRUCTED
 
 	var vision_cone : VisionCone3D
 
@@ -410,7 +433,7 @@ class VisionConeDebugVisualizer3D extends Node3D:
 		_probe_renderer.probe_data = vision_cone._shape_probe_data
 		add_child(_probe_renderer)
 
-	static func make_visualizer_material(albedo_color: Color = DEBUG_VISION_CONE_COLOR) -> StandardMaterial3D:
+	static func make_visualizer_material(albedo_color: Color = debug_vision_cone_color) -> StandardMaterial3D:
 		var mat := StandardMaterial3D.new()
 		mat.albedo_color = albedo_color
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -435,10 +458,9 @@ class VisionConeDebugVisualizer3D extends Node3D:
 		func _init():
 			mesh = ImmediateMesh.new()
 			probe_success_material = VisionConeDebugVisualizer3D.make_visualizer_material(
-				VisionConeDebugVisualizer3D.DEBUG_RAY_COLOR_IS_VISIBLE)
+				VisionConeDebugVisualizer3D.debug_ray_color_is_visible)
 			probe_failure_material = VisionConeDebugVisualizer3D.make_visualizer_material(
-				VisionConeDebugVisualizer3D.DEBUG_RAY_COLOR_IN_CONE)
-
+				VisionConeDebugVisualizer3D.debug_ray_color_in_cone)
 
 		func _process(_delta: float):
 			mesh.clear_surfaces()

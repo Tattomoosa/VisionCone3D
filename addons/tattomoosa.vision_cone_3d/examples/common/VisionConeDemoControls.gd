@@ -1,6 +1,7 @@
 extends PanelContainer
 
 @export var vision_cone : VisionCone3D
+@export var cameras : Array[Camera3D] = []
 
 @onready var raycast_center_checkbox : CheckBox = %RaycastCenterCheckBox
 @onready var raycast_scatter_checkbox : CheckBox = %RaycastScatterCheckBox
@@ -9,17 +10,39 @@ extends PanelContainer
 @onready var range_slider : Slider = %RangeSlider
 @onready var rotation_slider : Slider = %ObserverRotationSlider
 @onready var position_slider : Slider = %ObserverPositionSlider
+@onready var switch_camera_button : Button = %SwitchCameraButton
 
 func _ready():
 	raycast_center_checkbox.toggled.connect(_set_center)
 	raycast_scatter_checkbox.toggled.connect(_set_scatter)
-	raycast_count_slider.value_changed.connect(func(value: float): vision_cone.vision_test_shape_probe_count = value)
+	raycast_count_slider.value_changed.connect(func(value: float): vision_cone.vision_test_shape_max_probe_count = value)
 	angle_slider.value_changed.connect(func(value: float): vision_cone.angle = value)
 	range_slider.value_changed.connect(func(value: float): vision_cone.range = value)
 	rotation_slider.value_changed.connect(func(value: float): vision_cone.get_parent().rotation_degrees.y = -value)
 	position_slider.value_changed.connect(func(value: float): vision_cone.get_parent().position.x = value)
+	if cameras.is_empty():
+		switch_camera_button.hide()
+	else:
+		cameras[0].current = true
+		switch_camera_button.text = "Current Camera: " + cameras[0].name
+		switch_camera_button.pressed.connect(
+			func():
+				print("switching camera")
+				for i in cameras.size():
+					var cam := cameras[i]
+					if cam.current:
+						cam.current = false
+						var next_cam : Camera3D
+						if (i + 1) < cameras.size():
+							next_cam = cameras[i + 1]
+						else:
+							next_cam = cameras[0]
+						next_cam.current = true
+						switch_camera_button.text = "Current Camera: " + next_cam.name
+						return
+		)
 
-	vision_cone.vision_test_shape_probe_count = raycast_count_slider.value
+	vision_cone.vision_test_shape_max_probe_count = raycast_count_slider.value
 	vision_cone.angle = angle_slider.value
 	vision_cone.range = range_slider.value
 	vision_cone.get_parent().rotation_degrees.y = -rotation_slider.value
