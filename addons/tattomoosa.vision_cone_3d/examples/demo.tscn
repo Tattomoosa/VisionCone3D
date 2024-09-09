@@ -75,10 +75,7 @@ size = Vector2(100, 100)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875939, 9.98095)
 
 [node name="VisionCone3D" parent="Observer" index="0"]
-range = 19.909
-angle = 55.0
-vision_test_shape_max_probe_count = 1
-vision_test_max_bodies = 10
+angle = 90.0
 
 [node name="CollisionShape3D" parent="Observer" index="2"]
 disabled = true
@@ -107,11 +104,16 @@ transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 1.3926
 [node name="Observable6" parent="Observables" instance=ExtResource("2_bfp2s")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0.82285, 0.875938, -5.29844)
 
+[node name="Observable7" parent="Observables" instance=ExtResource("2_bfp2s")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -6.82495, 8.13516, 1.97822)
+
 [node name="Blocker" parent="Observables" instance=ExtResource("3_0fs8r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.462578, 0.875939, 1.96592)
+metadata/_edit_group_ = true
 
 [node name="Blocker2" parent="Observables" instance=ExtResource("3_0fs8r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.43444, -0.555664, 1.96592)
+metadata/_edit_group_ = true
 
 [node name="CollisionShape3D" parent="Observables/Blocker2" index="0"]
 shape = SubResource("BoxShape3D_vlnew")
@@ -121,9 +123,15 @@ mesh = SubResource("BoxMesh_q7pt8")
 
 [node name="Blocker3" parent="Observables" instance=ExtResource("3_0fs8r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7515, 0.854559, 1.43887)
+metadata/_edit_group_ = true
 
 [node name="Blocker4" parent="Observables" instance=ExtResource("3_0fs8r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.00019, 0.854559, 2.56153)
+metadata/_edit_group_ = true
+
+[node name="Blocker5" parent="Observables" instance=ExtResource("3_0fs8r")]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, -6.05265, 6.65204, 2.03565)
+metadata/_edit_group_ = true
 
 [node name="Path3D" type="Path3D" parent="Observables"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.94763, 0.875939, -2.14264)

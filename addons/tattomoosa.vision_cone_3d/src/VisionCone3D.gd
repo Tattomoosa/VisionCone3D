@@ -48,7 +48,7 @@ enum VisionTestMode{
 @export_group("Vision Test", "vision_test_")
 
 ## Which VisionTestMode to use to determine if a shape is visible
-@export var vision_test_mode : VisionTestMode
+@export var vision_test_mode : VisionTestMode = VisionTestMode.SAMPLE_RANDOM_VERTICES
 ## Maximum amount of shape probes (per shape, per frame)
 @export var vision_test_shape_max_probe_count : int = 5
 ## Maximum number of bodies to check, per-frame
@@ -102,7 +102,7 @@ var _shape_probe_data : Dictionary = {}
 # { Node3D "body" : Node3D "shape" }
 var _body_shape_data : Dictionary = {}
 
-var _last_probed_index : int = 0
+var _last_probed_index : int = -1
 
 var _debug_visualizer : VisionConeDebugVisualizer3D
 
@@ -126,11 +126,12 @@ func _physics_process(_delta: float) -> void:
 	for body in bodies_to_probe:
 		_update_body_probes(body)
 	
-func _get_bodies_to_check_this_frame() -> Array: #[CollisionObject3D]:
+func _get_bodies_to_check_this_frame() -> Array: # Array[CollisionObject3D]:
 	var all_bodies := _body_shape_data.keys()
 	if all_bodies.is_empty():
 		return []
 	if all_bodies.size() < vision_test_max_bodies:
+		_last_probed_index = -1
 		return all_bodies
 	var start_index := _last_probed_index + 1
 	var to_end := all_bodies.slice(start_index, start_index + vision_test_max_bodies)
