@@ -6,17 +6,22 @@
 	<h1>
 		VisionCone3D
 		<br/>
+		<sub>
+		<sub>
+		<sub>
+		Simple but configurable 3D vision cone node for <a href="https://godotengine.org/">Godot</a>
+		</sub>
+		</sub>
+		</sub>
+		<br/>
+		<br/>
 		<br/>
 	</h1>
-	<p>
-		<br/>
-		<br/>
-		Simple but configurable 3D vision cone node for <a href="https://godotengine.org/">Godot</a>
-	</p>
+	<br/>
+	<br/>
 	<img src="./readme_images/demo.png" height="140">
 	<img src="./readme_images/stress_test.png" height="140">
 	<img src="./readme_images/editor_view.png" height="140">
-	<br/>
 	<br/>
 	<br/>
 </div>
