@@ -12,7 +12,7 @@ config_version=5
 
 config/name="VisionCone3D"
 config/features=PackedStringArray("4.3", "GL Compatibility")
-config/icon="res://addons/tattomoosa.vision_cone_3d/icons/VisionCone3D.svg"
+config/icon="res://addons/tattomoosa.vision_cone_3d/icons/GizmoVisionCone.svg"
 
 [editor_plugins]
 

@@ -9,7 +9,7 @@ var _start_drag_range: float
 var _start_drag_angle : float
 
 func _init():
-	create_material("main", Color(1, 1, 0), false)
+	create_material("cone_preview", Color(1, 1, 0), false)
 	create_handle_material("handles")
 	create_icon_material(
 		"icon",
@@ -108,9 +108,6 @@ func _redraw(gizmo: EditorNode3DGizmo) -> void:
 
 	gizmo.add_unscaled_billboard(get_material("icon", gizmo), 0.04)
 
-	if !editor_interface.get_selection().get_selected_nodes().has(vc):
-		return
-
 	var lines = _make_cone_lines(360, 6, vc.end_radius, vc.range)
 	var cylinder_mesh := CylinderMesh.new()
 
@@ -119,7 +116,14 @@ func _redraw(gizmo: EditorNode3DGizmo) -> void:
 		Vector3(vc.end_radius, 0, -vc.range)
 	])
 
-	gizmo.add_lines(lines, get_material("main", gizmo), false)
+	#var cone_preview_material := "cone_preview_selected" if editor_interface.get_selection().get_selected_nodes().has(vc) else "cone_preview_unselected"
+
+	# Show cone when unselected, kind of distracting...
+	# var cone_alpha := 1.0 if editor_interface.get_selection().get_selected_nodes().has(vc) else 0.0
+	var cone_alpha := 1.0
+
+	if editor_interface.get_selection().get_selected_nodes().has(vc):
+		gizmo.add_lines(lines, get_material("cone_preview", gizmo), false, Color(1, 1, 1, cone_alpha))
 	gizmo.add_handles(handles, get_material("handles", gizmo), [])
 
 func _make_cone_lines(

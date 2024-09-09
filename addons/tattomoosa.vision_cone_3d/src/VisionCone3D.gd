@@ -5,9 +5,9 @@ extends Node3D
 ## Provides a "Vision Cone", a cone-shaped area where objects are then probed for visibility via ray casts
 
 ## Emitted when a body is newly visible
-signal body_visible(body: Node3D)
+signal body_sighted(body: Node3D)
 
-## Emitted when a body is newly hidden
+## Emitted when a body is newly not visible
 signal body_hidden(body: Node3D)
 
 ## Emitted when the cone shape changes
@@ -30,11 +30,21 @@ enum VisionTestMode{
 @export var angle := 45.0:
 	set(v): angle = v; _update_shape()
 
+@export var monitoring := true:
+	set(value):
+		monitoring = value
+		if _cone_area:
+			_cone_area.monitoring = value
+
 ## Whether or not to draw debug information
 @export var debug_draw := false:
 	set(v):
 		debug_draw = v
-		_debug_visualizer.visible = v
+		if debug_draw and !_debug_visualizer:
+				_debug_visualizer = VisionConeDebugVisualizer3D.new(self)
+				_debug_visualizer.update_cone_shape()
+		elif !debug_draw and _debug_visualizer:
+				_debug_visualizer.queue_free()
 
 @export_group("Vision Test", "vision_test_")
 
@@ -107,7 +117,8 @@ func _init() -> void:
 	add_child(_cone_area)
 
 	# debug
-	_debug_visualizer = VisionConeDebugVisualizer3D.new(self)
+	# if debug_draw:
+	# 	_debug_visualizer = VisionConeDebugVisualizer3D.new(self)
 	_update_shape()
 
 	_cone_area.collision_layer = collision_layer
@@ -136,7 +147,7 @@ func _physics_process(_delta: float) -> void:
 
 		if body_visibility_changed:
 			if body_is_visible:
-				body_visible.emit(body)
+				body_sighted.emit(body)
 			else:
 				body_hidden.emit(body)
 
@@ -193,6 +204,7 @@ class ConeArea3D extends Area3D:
 	var _shapes_in_cone : Array[Node3D] = []
 	# { Node3D (shape): PhysicsBody3D }
 	var _shape_body_map : Dictionary = {}
+	var _sphere_query_shape := SphereShape3D.new()
 
 	func _init() -> void:
 		add_child(_collision_shape)
@@ -230,22 +242,33 @@ class ConeArea3D extends Area3D:
 		var local_point := to_local(global_point)
 		var z_distance := position.z - local_point.z
 		if z_distance < 0 or z_distance > range:
-			if z_distance < 0:
-				print(z_distance)
 			return false
 		return point_within_angle(global_point)
 
 	func shape_in_vision_cone(shape: Node3D) -> bool:
+		if point_within_cone(shape.global_position):
+			return true
 		var distance := (shape.global_position - global_position).length()
 		var space_state := get_world_3d().direct_space_state
-		var sphere_shape := SphereShape3D.new()
-		sphere_shape.radius = get_cone_radius(distance, angle / 2)
+		_sphere_query_shape.radius = get_cone_radius(distance, angle / 2)
 		var sphere_query := PhysicsShapeQueryParameters3D.new()
-		sphere_query.shape = sphere_shape
+		sphere_query.shape = _sphere_query_shape
 		var forward := -global_basis.z
 		var sphere_origin := global_position + (forward * distance)
 		sphere_query.transform.origin = sphere_origin
 		sphere_query.collision_mask = collision_mask
+		sphere_query.collide_with_areas = false
+		sphere_query.collide_with_bodies = true
+
+		# This seems to make performance worse...
+		# for s in _shapes_in_bounding_box:
+		# 	if s == shape:
+		# 		continue
+		# 	var body : CollisionObject3D = _shape_body_map[shape]
+		# 	var rid := body.get_rid()
+		# 	if !sphere_query.exclude.has(body.get_rid()):
+		# 		sphere_query.exclude.push_back(body.get_rid())
+
 		var intersect_info := space_state.intersect_shape(sphere_query)
 		for info in intersect_info:
 			var body : Node3D = info.collider

@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://doqrupj5l86sr"]
+
+[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/src/VisionCone3D.gd" id="1_78jke"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_si8ep"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bebrf"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="VisionCone3D" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3.00271)
+script = ExtResource("1_78jke")
+debug_draw = true
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.66644)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
+mesh = SubResource("BoxMesh_si8ep")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("BoxShape3D_bebrf")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 8.38814, 0)

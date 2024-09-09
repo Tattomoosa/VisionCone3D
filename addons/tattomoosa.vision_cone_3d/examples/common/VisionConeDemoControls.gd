@@ -27,7 +27,6 @@ func _ready():
 		switch_camera_button.text = "Current Camera: " + cameras[0].name
 		switch_camera_button.pressed.connect(
 			func():
-				print("switching camera")
 				for i in cameras.size():
 					var cam := cameras[i]
 					if cam.current:
