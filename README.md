@@ -26,34 +26,26 @@
 	<br/>
 </div>
 
+Adds VisionCone3D, which tracks whether or not objects within its cone shape can be "seen".
+This can be used to let objects in your game "see" multiple objects efficiently.
+Default configuration should work for most use-cases out of the box.
+
 ## Features
 
-### Basic Features
-
-* VisionCone3D - a node which tracks whether or not objects within its cone shape can be "seen"
 * Edit range/angle of cone via 3D viewport editor gizmo
 * Debug visualization to easily diagnose any issues
-
-### Advanced Performance-Tuning Features
-
-* Configurable vision probe settings
+* Works with complex objects that have many collision shapes
+* Configurable vision probe settings allow tuning effectiveness and performance to your use-case
 * Ignore some physics bodies (eg the parent body)
-* Separate masks for bodies that can be seen and bodies that can only occlude
-
-<div style="text-align:center;">
-</div>
+* Separate masks for bodies that can be seen and bodies that can only occlude other objects
 
 ## Installation
 
-Options:
-
-* Install via the AssetLib tab in Godot by searching for VisionCone3D
-* Use [gd-plug](https://github.com/imjp94/gd-plug)
-* Download zip archive or clone from GitHub, open `addons/`, copy `tattomoosa.vision_cone_3d/` into your project's `addons` folder
+Install via the AssetLib tab within Godot by searching for VisionCone3D
 
 ## Usage
 
-Add the VisionCone3D node to your scene. Turn on debug draw
+Add the VisionCone3D node to your scene. Turn on debug draw to see it working. Then you can...
 
 ### Connect to the body visible signals
 
@@ -87,19 +79,29 @@ func _physics_process():
 	print("bodies visible: ", vision_cone.get_visible_bodies())
 ```
 
-### Vision Test Modes
+## Performance Tuning
+
+### Vision Test Mode
 
 #### Center
 
-Samples only the center point (position) of the CollisionShape. Most efficient.
+Samples only the center point (position) of the CollisionShape. Most efficient, least effective
+
+```js
+vision_cone.vision_test_mode = VisionCone3D.VisionTestMode.SAMPLE_CENTER
+```
 
 #### Sample Random Vertices
 
 Uses CollisionShape's `get_debug_mesh` to get a mesh representation of the CollisionShape,
 then samples random vertex points from that mesh.
+Effectiveness determined by the 
 
-Configuration:
-* Maximum probes used per body per frame: `vision_test_shape_max_probe_count`
+```python
+vision_cone.vision_test_mode = VisionCone3D.VisionTestMode.SAMPLE_RANDOM_VERTICES
+vision_cone.vision_test_max_bodies = 50 # Bodies probed, per-frame
+vision_cone.vision_test_shape_max_probe_count = 5 # Probes per hidden shape
+```
 
 ### Collision Masks
 
@@ -111,12 +113,8 @@ The player/enemy/object can then hide behind the level, but no processing/probin
 
 ## The Future
 
-### Performance
-
-
-
 ### 2D Support?
 
 I am open to adding a 2D version of this addon if there is sufficient interest.
 
-See if [VisionCone2D](https://github.com/d-bucur/godot-vision-cone) meets your needs. No relation.
+See if [VisionCone2D](https://github.com/d-bucur/godot-vision-cone) meets your needs in the meantime. No relation.
