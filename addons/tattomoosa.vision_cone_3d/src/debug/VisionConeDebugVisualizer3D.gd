@@ -5,9 +5,9 @@ const ProbeResult := VisionCone3D.VisionTestProber.ProbeResult
 # TODO should be modifiable via EditorSettings
 const DEBUG_VISION_CONE_COLOR := Color(1, 1, 0, 0.02)
 # TODO should be modifiable via EditorSettings
-const DEBUG_RAY_COLOR_IS_VISIBLE := Color(Color.GREEN, 0.5)
+const DEBUG_RAY_COLOR_IS_VISIBLE := Color(Color.GREEN, 0.8)
 # TODO should be modifiable via EditorSettings
-const DEBUG_RAY_COLOR_IS_OBSTRUCTED := Color(Color.RED, 0.2)
+const DEBUG_RAY_COLOR_IS_OBSTRUCTED := Color(Color.RED, 0.4)
 
 const debug_vision_cone_color := DEBUG_VISION_CONE_COLOR
 const debug_ray_color_is_visible := DEBUG_RAY_COLOR_IS_VISIBLE
@@ -32,7 +32,7 @@ func _init():
 
 func _ready():
 	vision_cone = get_parent()
-	_probe_renderer.probe_data = vision_cone._shape_probe_data
+	_probe_renderer.body_probe_data = vision_cone._body_probe_data
 	vision_cone.shape_changed.connect(update_cone_shape)
 	update_cone_shape()
 
@@ -53,7 +53,7 @@ func update_cone_shape() -> void:
 	_bounds_renderer.position.z = -vision_cone.range / 2
 
 class DebugProbeLineRenderer extends MeshInstance3D:
-	var probe_data: Dictionary
+	var body_probe_data: Dictionary
 	var probe_success_material : StandardMaterial3D
 	var probe_failure_material : StandardMaterial3D
 
@@ -64,17 +64,18 @@ class DebugProbeLineRenderer extends MeshInstance3D:
 		if Engine.is_editor_hint():
 			return
 		mesh.clear_surfaces()
-		if probe_data.is_empty():
+		if body_probe_data.is_empty():
 			return
 		var successful : Array[ProbeResult] = []
 		var failed : Array[ProbeResult] = []
 
-		for prober in probe_data.values():
-			for probe in prober.probe_results:
-				if probe.visible:
-					successful.push_back(probe)
-				else:
-					failed.push_back(probe)
+		for prober_list in body_probe_data.values():
+			for prober in prober_list:
+				for probe in prober.probe_results:
+					if probe.visible:
+						successful.push_back(probe)
+					else:
+						failed.push_back(probe)
 		
 		var material_index := 0
 		if !successful.is_empty():

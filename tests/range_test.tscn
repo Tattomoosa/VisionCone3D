@@ -1,0 +1,101 @@
+[gd_scene load_steps=9 format=3 uid="uid://dw7g5jkcqgm6j"]
+
+[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/src/VisionCone3D.gd" id="1_o82t8"]
+[ext_resource type="PackedScene" uid="uid://cdbsstpvtrvhd" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/vision_cone_controls.tscn" id="1_wk040"]
+[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/ui/ValueLabel.gd" id="2_2ahd1"]
+[ext_resource type="PackedScene" uid="uid://cmgl8607thxgg" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/observable.tscn" id="2_676hn"]
+[ext_resource type="Script" path="res://tests/common/radial_observable_spawner.gd" id="3_yxv80"]
+
+[sub_resource type="Animation" id="Animation_pobsl"]
+length = 0.001
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1)
+
+[sub_resource type="Animation" id="Animation_dlh2e"]
+resource_name = "rotate"
+length = 5.0
+loop_mode = 1
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 1.25, 1, 0, -0.707107, 0, 0.707107, 2.5, 1, 0, 1, 0, -4.37114e-08, 3.75, 1, 0, 0.707107, 0, 0.707107, 5.03333, 1, 0, -0.0206669, 0, 0.999786)
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_pk2ek"]
+_data = {
+"RESET": SubResource("Animation_pobsl"),
+"rotate": SubResource("Animation_dlh2e")
+}
+
+[node name="Node3D" type="Node3D"]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+offset_right = 210.0
+offset_bottom = 423.0
+theme_override_constants/separation = 0
+
+[node name="VisionConeControls" parent="VBoxContainer" node_paths=PackedStringArray("vision_cone") instance=ExtResource("1_wk040")]
+layout_mode = 2
+vision_cone = NodePath("../../VisionCone3D")
+
+[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/PanelContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/PanelContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Observable Disance
+"
+
+[node name="Label2" type="Label" parent="VBoxContainer/PanelContainer/VBoxContainer/HBoxContainer" node_paths=PackedStringArray("range_control")]
+layout_mode = 2
+script = ExtResource("2_2ahd1")
+range_control = NodePath("../../ObserverDistance")
+
+[node name="ObserverDistance" type="HSlider" parent="VBoxContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+min_value = 10.0
+max_value = 30.0
+value = 20.0
+
+[node name="VisionCone3D" type="Area3D" parent="."]
+script = ExtResource("1_o82t8")
+debug_draw = true
+vision_test_mode = 0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="VisionCone3D"]
+libraries = {
+"": SubResource("AnimationLibrary_pk2ek")
+}
+autoplay = "rotate"
+
+[node name="Observable" parent="." instance=ExtResource("2_676hn")]
+visible = false
+
+[node name="RadialObservableSpawner" type="Node3D" parent="." node_paths=PackedStringArray("vision_cone", "observable")]
+script = ExtResource("3_yxv80")
+vision_cone = NodePath("../VisionCone3D")
+spawn_count = 20
+observable = NodePath("../Observable")
+
+[node name="SpawnPoint" type="Marker3D" parent="RadialObservableSpawner"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12.6133)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 7.86288, 0)
+projection = 1
+size = 44.058
+
+[connection signal="value_changed" from="VBoxContainer/PanelContainer/VBoxContainer/ObserverDistance" to="RadialObservableSpawner" method="_range_changed"]

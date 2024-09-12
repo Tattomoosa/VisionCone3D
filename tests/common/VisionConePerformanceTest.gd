@@ -3,6 +3,7 @@ extends Node3D
 @export var vision_cone : VisionCone3D
 @export var observable_count : int = 5000
 @export var size : Vector3 = Vector3.ONE
+@export var material : StandardMaterial3D
 @export_enum("StaticBody3D", "AnimatableBody3D", "CharacterBody3D") var collision_body_type : int
 
 var _observable_box_shape := BoxShape3D.new()
@@ -34,7 +35,7 @@ func _physics_process(_delta: float) -> void:
 
 	debug_label.text = \
 		"Observable Count: " + str(_observables.size()) +"\n" +\
-		"Shapes in Cone: " + str(vision_cone._shape_probe_data.size()) + "\n" +\
+		"Bodies in Cone: " + str(vision_cone._body_probe_data.size()) + "\n" +\
 		"Physics Frame: " + str(snapped(physics_frame_time / physics_max_frame_time, 0.01) * 100.0) + "%\n" +\
 		"FPS: " + str(Engine.get_frames_per_second()) + "\n" +\
 		""
@@ -52,6 +53,7 @@ func _create_observable() -> Node3D:
 	node.add_child(collision_shape)
 	var mesh_instance := MeshInstance3D.new()
 	mesh_instance.mesh = _observable_box_mesh
+	_observable_box_mesh.material = material
 	node.add_child(mesh_instance)
 	add_child(node)
 	return node

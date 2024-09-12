@@ -1,0 +1,96 @@
+[gd_scene load_steps=8 format=3 uid="uid://cbyk7ppaxlf1o"]
+
+[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/ui/ValueLabel.gd" id="2_6rhom"]
+[ext_resource type="PackedScene" uid="uid://cmgl8607thxgg" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/observable.tscn" id="4_7sgmk"]
+[ext_resource type="PackedScene" uid="uid://brqivkckug8uc" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/observer.tscn" id="5_7cisf"]
+[ext_resource type="Script" path="res://tests/common/radial_observable_spawner.gd" id="5_2087b"]
+
+[sub_resource type="Animation" id="Animation_6ulmd"]
+length = 0.001
+tracks/0/type = "position_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Observer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0)
+
+[sub_resource type="Animation" id="Animation_tsuoi"]
+resource_name = "back_and_forth"
+length = 2.0
+loop_mode = 1
+step = 0.1
+tracks/0/type = "position_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Observer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 0.5, 1, 0, 0, -1, 1.5, 1, 0, 0, 1, 2, 1, 0, 0, 0)
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_spjpf"]
+_data = {
+"RESET": SubResource("Animation_6ulmd"),
+"back_and_forth": SubResource("Animation_tsuoi")
+}
+
+[node name="Node3D" type="Node3D"]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+offset_right = 210.0
+offset_bottom = 423.0
+
+[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/PanelContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/PanelContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Observable Disance
+"
+
+[node name="Label2" type="Label" parent="VBoxContainer/PanelContainer/VBoxContainer/HBoxContainer" node_paths=PackedStringArray("range_control")]
+layout_mode = 2
+script = ExtResource("2_6rhom")
+range_control = NodePath("../../ObserverDistance")
+
+[node name="ObserverDistance" type="HSlider" parent="VBoxContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+min_value = 10.0
+max_value = 30.0
+value = 20.0
+
+[node name="Observable" parent="." instance=ExtResource("4_7sgmk")]
+
+[node name="Observer" parent="." instance=ExtResource("5_7cisf")]
+
+[node name="VisionCone3D" parent="Observer" index="0"]
+vision_test_mode = 0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Observer"]
+libraries = {
+"": SubResource("AnimationLibrary_spjpf")
+}
+autoplay = "back_and_forth"
+
+[node name="RadialObservableSpawner" type="Node3D" parent="." node_paths=PackedStringArray("observable")]
+script = ExtResource("5_2087b")
+spawn_count = 20
+observable = NodePath("../Observer")
+
+[node name="SpawnPoint" type="Marker3D" parent="RadialObservableSpawner"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12.6133)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 7.86288, 0)
+projection = 1
+size = 44.058
+
+[connection signal="value_changed" from="VBoxContainer/PanelContainer/VBoxContainer/ObserverDistance" to="RadialObservableSpawner" method="_range_changed"]
+
+[editable path="Observer"]

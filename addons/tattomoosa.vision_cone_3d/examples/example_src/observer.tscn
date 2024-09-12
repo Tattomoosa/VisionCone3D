@@ -17,10 +17,11 @@ height = 0.75
 [node name="Observer" type="CharacterBody3D"]
 metadata/_edit_group_ = true
 
-[node name="VisionCone3D" type="Area3D" parent="."]
+[node name="VisionCone3D" type="Area3D" parent="." node_paths=PackedStringArray("vision_test_ignore_bodies")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.41062, -0.023833)
 script = ExtResource("1_t4wly")
 debug_draw = true
+vision_test_ignore_bodies = [NodePath("..")]
 
 [node name="Body" type="MeshInstance3D" parent="."]
 mesh = SubResource("CapsuleMesh_td2ym")

@@ -8,7 +8,7 @@
 
 [node name="Node3D" type="Node3D"]
 
-[node name="VisionCone3D" type="Node3D" parent="."]
+[node name="VisionCone3D" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3.00271)
 script = ExtResource("1_78jke")
 debug_draw = true

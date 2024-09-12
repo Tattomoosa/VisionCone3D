@@ -1,8 +1,12 @@
-[gd_scene load_steps=7 format=3 uid="uid://b54xp226qbtu4"]
+[gd_scene load_steps=8 format=3 uid="uid://b54xp226qbtu4"]
 
-[ext_resource type="Script" path="res://performance_tests/common/VisionConePerformanceTest.gd" id="1_g1nob"]
+[ext_resource type="Script" path="res://tests/common/VisionConePerformanceTest.gd" id="1_g1nob"]
 [ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/src/VisionCone3D.gd" id="2_w4wy6"]
 [ext_resource type="PackedScene" uid="uid://cdbsstpvtrvhd" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/vision_cone_controls.tscn" id="3_l1lfj"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ljy7w"]
+transparency = 1
+albedo_color = Color(1, 1, 1, 0.172549)
 
 [sub_resource type="Animation" id="Animation_el1nw"]
 length = 0.001
@@ -23,6 +27,7 @@ script = ExtResource("1_g1nob")
 vision_cone = NodePath("VisionCone3D")
 observable_count = 500
 size = Vector3(10, 0, 10)
+material = SubResource("StandardMaterial3D_ljy7w")
 collision_body_type = 2
 
 [node name="TopDownCamera" type="Camera3D" parent="."]
@@ -66,4 +71,5 @@ cameras = [NodePath("../TopDownCamera"), NodePath("../AngleCamera")]
 [node name="VisionCone3D" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 15)
 script = ExtResource("2_w4wy6")
+angle = 40.1439
 debug_draw = true

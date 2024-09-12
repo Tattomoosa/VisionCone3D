@@ -27,7 +27,7 @@ enum VisionTestMode{
 	## If shape was visible at last frame, tests last successful probe position first
 	SAMPLE_RANDOM_VERTICES,
 	## Gets a list of points where shapes collide from the physics engine
-	SAMPLE_COLLIDE_SHAPE,
+	# SAMPLE_COLLIDE_SHAPE,
 }
 
 ## Distance that can be seen (the height of the vision cone)
@@ -36,7 +36,7 @@ enum VisionTestMode{
 	set(v): range = v; _update_shape()
 
 ## Angle of the vision cone
-@export var angle := 45.0:
+@export_range(0, 150) var angle := 45.0:
 	set(v): angle = v; _update_shape()
 
 ## Whether or not to draw debug information
@@ -103,10 +103,14 @@ var _shapes_in_cone : Array[Node3D] = []
 
 # shape probes, mapped by collision shape
 # { Node3D "shape" : VisionTestProber }
-var _shape_probe_data : Dictionary = {}
+# var _shape_probe_data : Dictionary = {}
 # Shapes, mapped by body
 # { Node3D "body" : Node3D "shape" }
-var _body_shape_data : Dictionary = {}
+var _body_probe_data : Dictionary = {
+	# Node3D "body" : [
+		# "prober": VisionTestProber
+	# ]
+}
 
 var _last_probed_index : int = -1
 
@@ -120,7 +124,7 @@ var _cone_shape := ConeShape3D.new()
 ## Returns a list of intersecting PhysicsBody3Ds. The overlapping body's CollisionObject3D.collision_layer must be part of this area's CollisionObject3D.collision_mask in order to be detected.
 func get_visible_bodies() -> Array[PhysicsBody3D]:
 	var bodies := []
-	for prober: VisionTestProber in _shape_probe_data.values():
+	for prober: VisionTestProber in _body_probe_data.values():
 		bodies.push_back(prober.body)
 	return bodies
 
@@ -134,30 +138,11 @@ func point_within_angle(global_point: Vector3) -> bool:
 	return angle_deg <= (angle / 2)
 
 func point_within_cone(global_point: Vector3) -> bool:
-	return _point_within_cone_geometry(global_point)
-	# return _point_within_cone_physics(global_point)
-
-# Seems to be much more performant than physics method
-func _point_within_cone_geometry(global_point: Vector3) -> bool:
-	var local_point := _collision_shape.to_local(global_point)
-	var z_distance := position.z - local_point.z / 2
+	var local_point := to_local(global_point)
+	var z_distance := abs(local_point.z)
 	if z_distance < 0 or z_distance > range:
 		return false
 	return point_within_angle(global_point)
-
-# Seems to be slightly less performant than geometry method
-# May just delete
-func _point_within_cone_physics(global_point: Vector3) -> bool:
-	var space_state := get_world_3d().direct_space_state
-	var query := PhysicsPointQueryParameters3D.new()
-	query.collide_with_bodies = false
-	query.collide_with_areas = true
-	query.position = global_point
-	var results = space_state.intersect_point(query)
-	for hit in results:
-		if hit.rid == self.get_rid():
-			return true
-	return false
 
 func _init() -> void:
 	add_child(_collision_shape)
@@ -179,10 +164,14 @@ func _physics_process(_delta: float) -> void:
 
 	var bodies_to_probe := _get_bodies_to_probe_this_frame()
 	for body in bodies_to_probe:
+		if !is_instance_valid(body):
+			push_warning("erasing invalid body")
+			_body_probe_data.erase(body)
+			continue
 		_update_body_probes(body)
 	
 func _get_bodies_to_probe_this_frame() -> Array: # Array[CollisionObject3D]:
-	var all_bodies := _body_shape_data.keys()
+	var all_bodies := _body_probe_data.keys()
 	if all_bodies.is_empty():
 		return []
 	if all_bodies.size() < vision_test_max_body_count:
@@ -198,12 +187,12 @@ func _get_bodies_to_probe_this_frame() -> Array: # Array[CollisionObject3D]:
 	return (to_end + from_start)
 
 func _update_body_probes(body: CollisionObject3D):
-	var shapes : Array[Node3D] = _body_shape_data[body]
 	var body_was_visible_last_frame := false
 	var body_is_visible := false
+	var body_probes : Array[VisionTestProber]
+	body_probes.assign(_body_probe_data[body])
 
-	for shape in shapes:
-		var prober : VisionTestProber = _shape_probe_data[shape]
+	for prober in body_probes:
 		if prober.visible:
 			body_was_visible_last_frame = true
 		prober.update()
@@ -226,6 +215,8 @@ func _update_shape() -> void:
 	shape_changed.emit()
 
 func _get_collision_shape_node_in_body(body: PhysicsBody3D, body_shape_index: int) -> Node3D:
+	if !body:
+		return null
 	var body_shape_owner : int = body.shape_find_owner(body_shape_index)
 	return body.shape_owner_get_owner(body_shape_owner)
 
@@ -233,16 +224,31 @@ func _get_end_radius() -> float:
 	var angle_rad := deg_to_rad(angle / 2)
 	return range * tan(angle_rad)
 
+func _get_prober_for_shape(shape: CollisionShape3D, body: CollisionObject3D) -> VisionTestProber:
+	for prober in _body_probe_data[body]:
+		if prober.collision_shape == shape:
+			return prober
+	return null
+
 func _on_body_shape_entered(
 	_body_rid: RID,
 	body: Node3D,
 	body_shape_index: int,
 	_local_shape_index: int,
 ) -> void:
+	# weird!
+	if !is_instance_valid(body):
+		if _body_probe_data.has(body):
+			_body_probe_data.erase(body)
+		return
 	var shape := _get_collision_shape_node_in_body(body, body_shape_index)
-	_shape_probe_data[shape] = VisionTestProber.new(self, shape, body)
-	var shape_list : Array[Node3D] = _body_shape_data.get_or_add(body, [] as Array[Node3D])
-	shape_list.push_back(shape)
+	var body_probes := _body_probe_data.get_or_add(body, [])
+
+	var has_prober := _get_prober_for_shape(shape, body)
+	if !has_prober:
+		body_probes.push_back(VisionTestProber.new(self, shape, body))
+	else:
+		push_warning("Already has prober")
 
 func _on_body_shape_exited(
 	_body_rid: RID,
@@ -250,13 +256,14 @@ func _on_body_shape_exited(
 	body_shape_index: int,
 	_local_shape_index: int,
 ) -> void:
-	var shape_list : Array[Node3D] = _body_shape_data.get(body, [] as Array[Node3D])
+	if !body:
+		return
 	var shape := _get_collision_shape_node_in_body(body, body_shape_index)
-	shape_list.erase(shape)
-	if shape_list.is_empty():
-		_body_shape_data.erase(body)
-	_shapes_in_cone.erase(shape)
-	_shape_probe_data.erase(shape)
+	var prober := _get_prober_for_shape(shape, body)
+	_body_probe_data[body].erase(prober)
+	if _body_probe_data[body].is_empty():
+		_body_probe_data.erase(body)
+
 
 #endregion VisionCone3D
 
@@ -295,7 +302,9 @@ class VisionTestProber:
 		# can store reference to this?
 		var space_state := vision_cone.get_world_3d().direct_space_state
 		var from := vision_cone.global_position
-		var exclude_bodies := vision_cone.vision_test_ignore_bodies.map(func(x): x.get_rid())
+		var exclude_bodies := vision_cone.vision_test_ignore_bodies\
+			.filter(func(x): return is_instance_valid(x))\
+			.map(func(x): return x.get_rid())
 		var query := PhysicsRayQueryParameters3D.create(
 			from,
 			to,
@@ -361,10 +370,7 @@ class VisionTestProber:
 				if !visible:
 					sample_points.push_back(Vector3.ZERO)
 			VisionTestMode.SAMPLE_RANDOM_VERTICES: 
-				sample_points = _get_scatter_points(max_count)
-			VisionTestMode.SAMPLE_COLLIDE_SHAPE:
-				sample_points.push_back(Vector3.ZERO)
-				sample_points = _get_collide_points(max_count - 1)
+				sample_points.append_array(_get_scatter_points(max_count))
 
 		probe_results = []
 		visible = false
@@ -382,6 +388,7 @@ class VisionTestProber:
 				probe_result.visible = true
 				visible = true
 				if CONTINUE_PROBING_ON_SUCCESS:
+					print_debug("visible - continuing to probe")
 					continue
 				return
 
