@@ -272,7 +272,7 @@ class VisionTestProber:
 	var body : PhysicsBody3D
 
 	## Useful for debugging probes
-	const CONTINUE_PROBING_ON_SUCCESS := true
+	const CONTINUE_PROBING_ON_SUCCESS := false
 
 	## Whether the probe found the shape to be visible
 	var visible: bool = false
@@ -338,19 +338,13 @@ class VisionTestProber:
 		query.collide_with_areas = true
 		query.collide_with_bodies = false
 		query.collision_mask = vision_cone.collision_layer
-		# TODO wonder if this is necessary since i'm using shape_rid
-		# query.exclude = [body.get_rid()]
-		# query.shape = observable_shape
 		query.shape_rid = observable_shape.get_rid()
-		# TODO wonder if this is necessary since i'm using shape_rid
-		# query.transform = collision_shape.transform
 
 		var world_space := vision_cone.get_world_3d().direct_space_state
 		var result := world_space.collide_shape(query)
 		for i in result.size():
 			if i % 2 == 1:
 				continue
-			# sample_points.push_back(collision_shape.to_local(result[i]))
 			sample_points.push_back(result[i])
 			if sample_points.size() >= count:
 				break
