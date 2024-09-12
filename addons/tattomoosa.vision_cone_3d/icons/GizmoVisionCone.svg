@@ -1,3 +1,33 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:f1d3b8faa30140284149bd7e628d3902a2d9fdf863de642f9ea20c2bb9202448
-size 2437
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 28.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 128 128" style="enable-background:new 0 0 128 128;" xml:space="preserve">
+<style type="text/css">
+	.st0{display:none;}
+	.st1{display:inline;fill-opacity:0.294;}
+	.st2{display:inline;fill:#FFFFFF;}
+	.st3{fill:#FFFFFF;}
+	.st4{fill:none;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st5{fill:none;stroke:#000000;stroke-width:3;stroke-miterlimit:10;}
+	.st6{fill:#231F20;}
+	.st7{fill:none;stroke:#000000;stroke-width:4;stroke-miterlimit:10;}
+</style>
+<g id="Layer_1_00000012455106065017520430000009640333213232038794_" class="st0">
+	<path class="st1" d="M52,4c-6.6,0-12,5.4-12,12v26.6C27.7,49.2,20,62,20,76v4h28.6c2.3,8.5,11.1,13.5,19.7,11.2
+		c5.4-1.5,9.7-5.7,11.2-11.2H108v-4c0-14-7.7-26.8-20-33.4V16c0-6.6-5.4-12-12-12H52z M40.3,82c-1.6-0.1-3.2,0.3-4.6,1.1l-10.4,6
+		c-3.8,2.2-5.1,7.1-2.9,10.9s7.1,5.1,10.9,2.9l10.4-6c3.8-2.2,5.1-7.1,2.9-10.9C45.4,83.7,43,82.2,40.3,82z M87.7,82
+		c-4.4,0.3-7.7,4.1-7.5,8.5c0.2,2.7,1.7,5.1,4,6.4l10.4,6c3.8,2.2,8.7,0.9,10.9-2.9s0.9-8.7-2.9-10.9l-10.4-6
+		C90.9,82.3,89.3,81.9,87.7,82L87.7,82z M64,96c-4.4,0-8,3.6-8,8v12c0,4.4,3.6,8,8,8s8-3.6,8-8v-12C72,99.6,68.4,96,64,96z"/>
+	<path class="st2" d="M52,8c-4.4,0-8,3.6-8,8v28.9C31.6,51.3,24,63.2,24,76h28c0,6.6,5.4,12,12,12s12-5.4,12-12h28
+		c0-12.8-7.6-24.7-20-31.1V16c0-4.4-3.6-8-8-8H52z M40,86c-0.8-0.1-1.6,0.1-2.3,0.5l-10.4,6c-1.9,1.1-2.6,3.6-1.5,5.5
+		s3.6,2.6,5.5,1.5l10.4-6c1.9-1.1,2.6-3.6,1.5-5.5C42.5,86.8,41.4,86.1,40,86L40,86z M88,86c-2.2,0.1-3.9,2-3.7,4.3
+		c0.1,1.3,0.8,2.5,2,3.2l10.4,6c1.9,1.1,4.4,0.4,5.5-1.5s0.4-4.4-1.5-5.5l-10.4-6C89.6,86.1,88.8,86,88,86L88,86z M64,100
+		c-2.2,0-4,1.8-4,4v12c0,2.2,1.8,4,4,4c2.2,0,4-1.8,4-4v-12C68,101.8,66.2,100,64,100z"/>
+</g>
+<path class="st3" d="M6.2,66.2l85.1,57.5L88,112.5c-8.8-30.2-8.8-62.4,0-92.6l3.3-11.2L6.2,66.2z"/>
+<path class="st4" d="M6.2,66.2l85.1,57.5L88,112.5c-8.8-30.2-8.8-62.4,0-92.6l3.3-11.2L6.2,66.2z"/>
+<ellipse class="st3" cx="107" cy="66.2" rx="15.7" ry="57.5"/>
+<ellipse class="st5" cx="107" cy="66.2" rx="15.7" ry="57.5"/>
+<ellipse class="st6" cx="98.3" cy="66.2" rx="3.6" ry="19.3"/>
+<ellipse class="st7" cx="99.3" cy="66.2" rx="3.6" ry="19.3"/>
+</svg>
