@@ -38,6 +38,7 @@ Default configuration should work for most use-cases out of the box.
 * Configurable vision probe settings allow tuning effectiveness and performance to your use-case
 * Ignore some physics bodies (eg the parent body)
 * Separate masks for bodies that can be seen and bodies that can only occlude other objects
+* Includes general-purpose ConeShape3D
 
 ## Installation
 
@@ -112,3 +113,10 @@ This asset is still in development. I have some ideas for further performance tu
 I am open to adding a 2D version of this addon if there is sufficient interest.
 
 See if [VisionCone2D](https://github.com/d-bucur/godot-vision-cone) meets your needs in the meantime. No relation.
+
+## Upgrading
+
+### 0.1.0 -> 0.20
+
+v0.2.0 has significant performance improvements. Probably should have waited a few days before publishing. It probably doesn't have any users yet, but
+just in case
