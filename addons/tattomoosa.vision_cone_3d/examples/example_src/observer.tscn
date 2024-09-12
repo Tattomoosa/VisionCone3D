@@ -17,13 +17,10 @@ height = 0.75
 [node name="Observer" type="CharacterBody3D"]
 metadata/_edit_group_ = true
 
-[node name="VisionCone3D" type="Node3D" parent="."]
+[node name="VisionCone3D" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.41062, -0.023833)
 script = ExtResource("1_t4wly")
-range = 15.6096
 debug_draw = true
-vision_test_mode = 1
-collision_environment_mask = 2
 
 [node name="Body" type="MeshInstance3D" parent="."]
 mesh = SubResource("CapsuleMesh_td2ym")

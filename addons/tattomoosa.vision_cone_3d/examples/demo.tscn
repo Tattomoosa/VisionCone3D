@@ -74,9 +74,6 @@ size = Vector2(100, 100)
 [node name="Observer" parent="." instance=ExtResource("1_5m65v")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875939, 9.98095)
 
-[node name="VisionCone3D" parent="Observer" index="0"]
-angle = 90.0
-
 [node name="CollisionShape3D" parent="Observer" index="2"]
 disabled = true
 
