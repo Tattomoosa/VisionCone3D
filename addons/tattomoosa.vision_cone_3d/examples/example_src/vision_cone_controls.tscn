@@ -81,18 +81,24 @@ text = "Vision Test Mode"
 [node name="VisionTestMode" type="HBoxContainer" parent="MarginContainer/VBoxContainer/VisionTestModeControls"]
 layout_mode = 2
 
-[node name="RaycastCenterCheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/VisionTestModeControls/VisionTestMode"]
+[node name="VisionTestCenterCheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/VisionTestModeControls/VisionTestMode"]
 unique_name_in_owner = true
 layout_mode = 2
 button_group = SubResource("ButtonGroup_dqtte")
 text = "Center"
 
-[node name="RaycastScatterCheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/VisionTestModeControls/VisionTestMode"]
+[node name="VisionTestScatterCheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/VisionTestModeControls/VisionTestMode"]
 unique_name_in_owner = true
 layout_mode = 2
 button_pressed = true
 button_group = SubResource("ButtonGroup_dqtte")
 text = "Scatter"
+
+[node name="VisionTestCollideCheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/VisionTestModeControls/VisionTestMode"]
+unique_name_in_owner = true
+layout_mode = 2
+button_group = SubResource("ButtonGroup_dqtte")
+text = "Collide"
 
 [node name="ProbesPerFrame" type="VBoxContainer" parent="MarginContainer/VBoxContainer/VisionTestModeControls"]
 layout_mode = 2

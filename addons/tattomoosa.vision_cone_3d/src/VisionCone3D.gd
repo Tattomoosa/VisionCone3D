@@ -19,12 +19,15 @@ signal body_hidden(body: Node3D)
 signal shape_changed
 
 ## Determines how visibility is probed for bodies within the cone area
+##
 enum VisionTestMode{
-	## Samples the center of each CollisionShape
+	## Samples the center of each CollisionShape. Maximum performance, least reliability
 	SAMPLE_CENTER,
 	## Samples random vertices of each CollisionShape, up to `vision_test_shape_max_probe_count` for hidden objects
 	## If shape was visible at last frame, tests last successful probe position first
-	SAMPLE_RANDOM_VERTICES
+	SAMPLE_RANDOM_VERTICES,
+	## Gets a list of points where shapes collide from the physics engine
+	SAMPLE_COLLIDE_SHAPE,
 }
 
 ## Distance that can be seen (the height of the vision cone)
@@ -131,11 +134,30 @@ func point_within_angle(global_point: Vector3) -> bool:
 	return angle_deg <= (angle / 2)
 
 func point_within_cone(global_point: Vector3) -> bool:
+	return _point_within_cone_geometry(global_point)
+	# return _point_within_cone_physics(global_point)
+
+# Seems to be much more performant than physics method
+func _point_within_cone_geometry(global_point: Vector3) -> bool:
 	var local_point := _collision_shape.to_local(global_point)
 	var z_distance := position.z - local_point.z / 2
 	if z_distance < 0 or z_distance > range:
 		return false
 	return point_within_angle(global_point)
+
+# Seems to be slightly less performant than geometry method
+# May just delete
+func _point_within_cone_physics(global_point: Vector3) -> bool:
+	var space_state := get_world_3d().direct_space_state
+	var query := PhysicsPointQueryParameters3D.new()
+	query.collide_with_bodies = false
+	query.collide_with_areas = true
+	query.position = global_point
+	var results = space_state.intersect_point(query)
+	for hit in results:
+		if hit.rid == self.get_rid():
+			return true
+	return false
 
 func _init() -> void:
 	add_child(_collision_shape)
@@ -249,6 +271,9 @@ class VisionTestProber:
 	## Collision shape's owning body
 	var body : PhysicsBody3D
 
+	## Useful for debugging probes
+	const CONTINUE_PROBING_ON_SUCCESS := true
+
 	## Whether the probe found the shape to be visible
 	var visible: bool = false
 	## All probe results, for debugging
@@ -285,6 +310,12 @@ class VisionTestProber:
 			result.collider if result.has("collider") else null
 		)
 	
+	func _get_last_visible_point_on_shape() -> Vector3:
+		if probe_results.is_empty():
+			push_warning("Attempting to find the last visible point on a shape but the shape was not determined to be visible during last probe")
+			return Vector3.ZERO
+		return probe_results[-1].shape_local_target
+
 	func _random_points_on_probe_mesh(count: int) -> Array[Vector3]:
 		var surface_count := shape_probe_mesh.get_surface_count()
 		var vertices = shape_probe_mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
@@ -293,24 +324,53 @@ class VisionTestProber:
 			points.push_back(vertices[_rng.randi_range(0, vertices.size() - 1)])
 		return points
 	
-	func _get_scatter_points():
+	func _get_scatter_points(count: int):
 		var sample_points : Array[Vector3] = []
 		var random_point_count := vision_cone.vision_test_shape_max_probe_count
-		if !probe_results.is_empty():
-			var last := probe_results[-1]
-			if last.visible:
-				sample_points.append(last.shape_local_target)
-				random_point_count -= 1
 		sample_points.append_array(_random_points_on_probe_mesh(random_point_count))
+		return sample_points
+	
+	func _get_collide_points(count: int):
+		var sample_points : Array[Vector3] = []
+		var cone_shape := vision_cone._collision_shape.shape
+		var observable_shape := collision_shape.shape
+		var query := PhysicsShapeQueryParameters3D.new()
+		query.collide_with_areas = true
+		query.collide_with_bodies = false
+		query.collision_mask = vision_cone.collision_layer
+		# TODO wonder if this is necessary since i'm using shape_rid
+		# query.exclude = [body.get_rid()]
+		# query.shape = observable_shape
+		query.shape_rid = observable_shape.get_rid()
+		# TODO wonder if this is necessary since i'm using shape_rid
+		# query.transform = collision_shape.transform
+
+		var world_space := vision_cone.get_world_3d().direct_space_state
+		var result := world_space.collide_shape(query)
+		for i in result.size():
+			if i % 2 == 1:
+				continue
+			# sample_points.push_back(collision_shape.to_local(result[i]))
+			sample_points.push_back(result[i])
+			if sample_points.size() >= count:
+				break
 		return sample_points
 		
 	func update():
 		var sample_points : Array[Vector3] = []
+		var max_count := vision_cone.vision_test_shape_max_probe_count
+		if visible:
+			sample_points.append(_get_last_visible_point_on_shape())
+			max_count -= 1
 		match vision_cone.vision_test_mode:
 			VisionTestMode.SAMPLE_CENTER:
-				sample_points = [Vector3.ZERO]
+				if !visible:
+					sample_points.push_back(Vector3.ZERO)
 			VisionTestMode.SAMPLE_RANDOM_VERTICES: 
-				sample_points = _get_scatter_points()
+				sample_points = _get_scatter_points(max_count)
+			VisionTestMode.SAMPLE_COLLIDE_SHAPE:
+				sample_points.push_back(Vector3.ZERO)
+				sample_points = _get_collide_points(max_count - 1)
 
 		probe_results = []
 		visible = false
@@ -327,6 +387,8 @@ class VisionTestProber:
 			if probe_result.collider == body:
 				probe_result.visible = true
 				visible = true
+				if CONTINUE_PROBING_ON_SUCCESS:
+					continue
 				return
 
 

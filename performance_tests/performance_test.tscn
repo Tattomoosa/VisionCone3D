@@ -21,14 +21,17 @@ _data = {
 [node name="PerformanceTest" type="Node3D" node_paths=PackedStringArray("vision_cone")]
 script = ExtResource("1_g1nob")
 vision_cone = NodePath("VisionCone3D")
-observable_count = 800
-size = Vector3(10, 10, 10)
+observable_count = 500
+size = Vector3(10, 0, 10)
 collision_body_type = 2
 
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="TopDownCamera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 17.3701, 0)
 projection = 1
 size = 17.856
+
+[node name="AngleCamera" type="Camera3D" parent="."]
+transform = Transform3D(0.74057, -0.139609, 0.657317, 7.45058e-09, 0.97818, 0.207758, -0.671979, -0.153859, 0.724411, 11.3324, 7.95764, 10.64)
 
 [node name="Control" type="Control" parent="."]
 layout_mode = 3
@@ -48,7 +51,7 @@ libraries = {
 }
 autoplay = "rotate"
 
-[node name="VisionConeControls" parent="." node_paths=PackedStringArray("vision_cone") instance=ExtResource("3_l1lfj")]
+[node name="VisionConeControls" parent="." node_paths=PackedStringArray("vision_cone", "cameras") instance=ExtResource("3_l1lfj")]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -58,6 +61,7 @@ offset_right = 0.0
 offset_bottom = 366.0
 grow_horizontal = 0
 vision_cone = NodePath("../VisionCone3D")
+cameras = [NodePath("../TopDownCamera"), NodePath("../AngleCamera")]
 
 [node name="VisionCone3D" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 15)

@@ -3,8 +3,9 @@ extends PanelContainer
 @export var vision_cone : VisionCone3D
 @export var cameras : Array[Camera3D] = []
 
-@onready var raycast_center_checkbox : CheckBox = %RaycastCenterCheckBox
-@onready var raycast_scatter_checkbox : CheckBox = %RaycastScatterCheckBox
+@onready var vision_test_center_checkbox : CheckBox = %VisionTestCenterCheckBox
+@onready var vision_test_scatter_checkbox : CheckBox = %VisionTestScatterCheckBox
+@onready var vision_test_collide_checkbox : CheckBox = %VisionTestCollideCheckBox
 @onready var raycast_count_slider : Slider = %RaycastsPerFrameSlider
 @onready var angle_slider : Slider = %AngleSlider
 @onready var range_slider : Slider = %RangeSlider
@@ -14,8 +15,9 @@ extends PanelContainer
 @onready var switch_camera_button : Button = %SwitchCameraButton
 
 func _ready():
-	raycast_center_checkbox.toggled.connect(_set_center)
-	raycast_scatter_checkbox.toggled.connect(_set_scatter)
+	vision_test_center_checkbox.toggled.connect(_set_center)
+	vision_test_scatter_checkbox.toggled.connect(_set_scatter)
+	vision_test_collide_checkbox.toggled.connect(_set_collide)
 	raycast_count_slider.value_changed.connect(func(value: float): vision_cone.vision_test_shape_max_probe_count = value)
 	angle_slider.value_changed.connect(func(value: float): vision_cone.angle = value)
 	range_slider.value_changed.connect(func(value: float): vision_cone.range = value)
@@ -58,8 +60,9 @@ func _ready():
 		rotation_slider.get_parent().hide()
 		position_slider.get_parent().hide()
 
-	_set_center(raycast_center_checkbox.button_pressed)
-	_set_scatter(raycast_scatter_checkbox.button_pressed)
+	_set_center(vision_test_center_checkbox.button_pressed)
+	_set_scatter(vision_test_scatter_checkbox.button_pressed)
+	_set_collide(vision_test_collide_checkbox.button_pressed)
 
 	size.y = 0
 
@@ -72,3 +75,8 @@ func _set_scatter(value: bool):
 	if !value:
 		return
 	vision_cone.vision_test_mode = VisionCone3D.VisionTestMode.SAMPLE_RANDOM_VERTICES
+
+func _set_collide(value: bool):
+	if !value:
+		return
+	vision_cone.vision_test_mode = VisionCone3D.VisionTestMode.SAMPLE_COLLIDE_SHAPE
