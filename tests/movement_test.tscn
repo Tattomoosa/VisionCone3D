@@ -69,9 +69,6 @@ value = 20.0
 
 [node name="Observer" parent="." instance=ExtResource("5_7cisf")]
 
-[node name="VisionCone3D" parent="Observer" index="0"]
-vision_test_mode = 0
-
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Observer"]
 libraries = {
 "": SubResource("AnimationLibrary_spjpf")

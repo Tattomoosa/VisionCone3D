@@ -5,7 +5,8 @@ editor, then reload the scene
 * Add ConeShape3D
 * ConeShape3D used for shape collisions
 * Significant performance improvements
+* Bugfixes
 
-v0.1.0 [2f8bab9]
+v0.1.0
 
 * Add VisionCone3D

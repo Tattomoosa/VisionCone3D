@@ -116,7 +116,9 @@ See if [VisionCone2D](https://github.com/d-bucur/godot-vision-cone) meets your n
 
 ## Upgrading
 
-### 0.1.0 -> 0.20
+### 0.1.0 -> 0.2.0
 
-v0.2.0 has significant performance improvements. Probably should have waited a few days before publishing. It probably doesn't have any users yet, but
-just in case
+v0.2.0 has significant performance improvements. Probably should have waited a few days before publishing. It probably doesn't have any users yet, but just in case...
+
+* Use "Change Type..." on your VisionCone3Ds and select Area3D.
+* Use new ConeShape3D for all your cone-y collision needs

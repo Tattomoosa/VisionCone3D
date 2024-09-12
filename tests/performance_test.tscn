@@ -26,7 +26,7 @@ _data = {
 script = ExtResource("1_g1nob")
 vision_cone = NodePath("VisionCone3D")
 observable_count = 500
-size = Vector3(10, 0, 10)
+size = Vector3(10, 10, 10)
 material = SubResource("StandardMaterial3D_ljy7w")
 collision_body_type = 2
 
@@ -36,7 +36,7 @@ projection = 1
 size = 17.856
 
 [node name="AngleCamera" type="Camera3D" parent="."]
-transform = Transform3D(0.74057, -0.139609, 0.657317, 7.45058e-09, 0.97818, 0.207758, -0.671979, -0.153859, 0.724411, 11.3324, 7.95764, 10.64)
+transform = Transform3D(0.74057, -0.139609, 0.657317, 7.45058e-09, 0.97818, 0.207758, -0.671979, -0.153859, 0.724411, 11.8081, 4.62484, 11.1642)
 
 [node name="Control" type="Control" parent="."]
 layout_mode = 3

@@ -43,14 +43,11 @@ func _ready():
 						return
 		)
 
-	# vision_cone.vision_test_shape_max_probe_count = raycast_count_slider.value
-	# vision_cone.angle = angle_slider.value
 	angle_slider.value = vision_cone.angle 
 	range_slider.value = vision_cone.range 
 	max_bodies_slider.value = vision_cone.vision_test_max_body_count
 	raycast_count_slider.value = vision_cone.vision_test_shape_max_probe_count 
 
-	# vision_cone.range = range_slider.value
 	if vision_cone.get_parent() is CharacterBody3D:
 		vision_cone.get_parent().rotation_degrees.y = -rotation_slider.value
 		vision_cone.get_parent().position.x = position_slider.value

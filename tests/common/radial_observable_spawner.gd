@@ -13,7 +13,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_spawner = get_child(0)
 	for _i in spawn_count:
-		var ob := observable.duplicate(DUPLICATE_SIGNALS)
+		var ob := observable.duplicate()
 		get_parent().add_child(ob)
 		ob.show()
 		observables.push_back(ob)

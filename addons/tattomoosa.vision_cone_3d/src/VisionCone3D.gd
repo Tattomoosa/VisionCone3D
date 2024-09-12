@@ -98,13 +98,6 @@ enum VisionTestMode{
 var end_radius: float:
 	get: return _get_end_radius()
 
-# List of shapes currently in cone
-var _shapes_in_cone : Array[Node3D] = []
-
-# shape probes, mapped by collision shape
-# { Node3D "shape" : VisionTestProber }
-# var _shape_probe_data : Dictionary = {}
-# Shapes, mapped by body
 # { Node3D "body" : Node3D "shape" }
 var _body_probe_data : Dictionary = {
 	# Node3D "body" : [
@@ -113,9 +106,7 @@ var _body_probe_data : Dictionary = {
 }
 
 var _last_probed_index : int = -1
-
 var _debug_visualizer : VisionConeDebugVisualizer3D
-
 var _collision_shape := CollisionShape3D.new()
 var _cone_shape := ConeShape3D.new()
 
@@ -137,6 +128,7 @@ func point_within_angle(global_point: Vector3) -> bool:
 	var angle_deg := rad_to_deg(angle_to)
 	return angle_deg <= (angle / 2)
 
+## Whether or not a given point in global space is within the cone
 func point_within_cone(global_point: Vector3) -> bool:
 	var local_point := to_local(global_point)
 	var z_distance := abs(local_point.z)
@@ -168,7 +160,7 @@ func _physics_process(_delta: float) -> void:
 			push_warning("erasing invalid body")
 			_body_probe_data.erase(body)
 			continue
-		_update_body_probes(body)
+		_probe_body(body)
 	
 func _get_bodies_to_probe_this_frame() -> Array: # Array[CollisionObject3D]:
 	var all_bodies := _body_probe_data.keys()
@@ -186,7 +178,7 @@ func _get_bodies_to_probe_this_frame() -> Array: # Array[CollisionObject3D]:
 	_last_probed_index = from_start.size() - 1 if from_start.size() > 0 else start_index + counted - 1
 	return (to_end + from_start)
 
-func _update_body_probes(body: CollisionObject3D):
+func _probe_body(body: CollisionObject3D):
 	var body_was_visible_last_frame := false
 	var body_is_visible := false
 	var body_probes : Array[VisionTestProber]
@@ -195,7 +187,7 @@ func _update_body_probes(body: CollisionObject3D):
 	for prober in body_probes:
 		if prober.visible:
 			body_was_visible_last_frame = true
-		prober.update()
+		prober.probe()
 		if prober.visible:
 			body_is_visible = true
 
@@ -236,7 +228,7 @@ func _on_body_shape_entered(
 	body_shape_index: int,
 	_local_shape_index: int,
 ) -> void:
-	# weird!
+	# # weird!
 	if !is_instance_valid(body):
 		if _body_probe_data.has(body):
 			_body_probe_data.erase(body)
@@ -296,7 +288,7 @@ class VisionTestProber:
 		shape_probe_mesh = collision_shape_.shape.get_debug_mesh()
 		body = body_
 	
-	func probe(to: Vector3, shape_local_target: Vector3) -> ProbeResult:
+	func _probe_position(to: Vector3, shape_local_target: Vector3) -> ProbeResult:
 		# Collide with bodies OR the environment
 		var raycast_collision_mask := vision_cone.collision_mask | vision_cone.collision_environment_mask
 		# can store reference to this?
@@ -321,7 +313,7 @@ class VisionTestProber:
 	
 	func _get_last_visible_point_on_shape() -> Vector3:
 		if probe_results.is_empty():
-			push_warning("Attempting to find the last visible point on a shape but the shape was not determined to be visible during last probe")
+			push_warning("Attempting to find the last visible point on a shape but the shape was not determined to be visible during last _probe_position")
 			return Vector3.ZERO
 		return probe_results[-1].shape_local_target
 
@@ -359,7 +351,7 @@ class VisionTestProber:
 				break
 		return sample_points
 		
-	func update():
+	func probe():
 		var sample_points : Array[Vector3] = []
 		var max_count := vision_cone.vision_test_shape_max_probe_count
 		if visible:
@@ -380,7 +372,7 @@ class VisionTestProber:
 			if !vision_cone.point_within_cone(global_point):
 				continue
 
-			var probe_result := probe(global_point, shape_local_point)
+			var probe_result := _probe_position(global_point, shape_local_point)
 			probe_results.push_back(probe_result)
 
 			# found body we were looking for
@@ -388,7 +380,7 @@ class VisionTestProber:
 				probe_result.visible = true
 				visible = true
 				if CONTINUE_PROBING_ON_SUCCESS:
-					print_debug("visible - continuing to probe")
+					print_debug("visible - continuing to _probe_position")
 					continue
 				return
 
