@@ -1,14 +1,13 @@
 extends EditorNode3DGizmoPlugin
 
-var texture = preload("../../icons/GizmoVisionCone.svg")
-var editor_interface : EditorInterface
+var texture : Texture2D = preload("../../icons/GizmoVisionCone.svg")
 var undo_redo: EditorUndoRedoManager
 
 var _start_drag_mouse_world_position : Vector3
 var _start_drag_range: float
 var _start_drag_angle : float
 
-func _init():
+func _init() -> void:
 	create_material("cone_preview", Color(1, 1, 0), false)
 	create_handle_material("handles")
 	create_icon_material(
@@ -16,32 +15,34 @@ func _init():
 		texture,
 	)
 
-func _get_gizmo_name():
+func _get_gizmo_name() -> String:
 	return "VisionCone3D"
 
 func _get_handle_name(
-	gizmo: EditorNode3DGizmo,
+	_gizmo: EditorNode3DGizmo,
 	handle_id: int,
-	secondary: bool
-):
+	_secondary: bool
+) -> String:
 	match handle_id:
 		0: return "Range"
 		1: return "Angle"
+		_: return ""
 
 func _get_handle_value(
 	gizmo: EditorNode3DGizmo,
 	handle_id: int,
-	secondary: bool
-):
+	_secondary: bool
+) -> Variant:
 	var vc : VisionCone3D = gizmo.get_node_3d()
 	match handle_id:
 		0: return vc.range
 		1: return vc.angle
+		_: return null
 
 func _begin_handle_action(
 	gizmo: EditorNode3DGizmo,
-	handle_id,
-	secondary
+	handle_id: int,
+	_secondary: bool
 ) -> void:
 	var vc : VisionCone3D = gizmo.get_node_3d()
 	_start_drag_mouse_world_position = vc.global_position + (-vc.global_basis.z * vc.range)
@@ -51,7 +52,14 @@ func _begin_handle_action(
 		1: # angle
 			_start_drag_angle = vc.angle
 
-func _commit_handle(gizmo, handle_id, secondary, restore, cancel):
+func _commit_handle(
+	gizmo: EditorNode3DGizmo,
+	handle_id: int,
+	_secondary: bool,
+	_restore: Variant,
+	# TODO use cancel
+	_cancel: bool
+) -> void:
 	var vc : VisionCone3D = gizmo.get_node_3d()
 	match handle_id:
 		0: # range
@@ -67,10 +75,10 @@ func _commit_handle(gizmo, handle_id, secondary, restore, cancel):
 func _set_handle(
 	gizmo: EditorNode3DGizmo,
 	handle_id: int,
-	secondary: bool,
+	_secondary: bool,
 	camera: Camera3D,
-	screen_pos: Vector2
-):
+	_screen_pos: Vector2,
+) -> void:
 	var vc : VisionCone3D = gizmo.get_node_3d()
 	match handle_id:
 		0: # range
@@ -81,12 +89,12 @@ func _set_handle(
 				Vector3.UP
 			)
 			var local_pos := vc.to_local(world_pos)
-			var new_range = -local_pos.z
+			var new_range := -local_pos.z
 			if new_range > 0:
 				vc.range = new_range
 
 		1: # angle
-			var local_end_range_pos := Vector3(0, 0, -vc.range)
+			# var local_end_range_pos := Vector3(0, 0, -vc.range)
 
 			# TODO this mostly works but not if camera.y is near vc.y
 			var world_pos := _calculate_mouse_world_position(
@@ -99,7 +107,7 @@ func _set_handle(
 			vc.angle = abs(rad_to_deg(atan(radius / vc.range))) * 2
 	gizmo.get_node_3d().update_gizmos()
 
-func _has_gizmo(node: Node3D):
+func _has_gizmo(node: Node3D) -> bool:
 	return node is VisionCone3D
 
 func _redraw(gizmo: EditorNode3DGizmo) -> void:
@@ -108,36 +116,35 @@ func _redraw(gizmo: EditorNode3DGizmo) -> void:
 
 	gizmo.add_unscaled_billboard(get_material("icon", gizmo), 0.04)
 
-	var lines = _make_cone_lines(360, 6, vc.end_radius, vc.range)
-	var cylinder_mesh := CylinderMesh.new()
+	var lines := _make_cone_lines(360, 6, vc.end_radius, vc.range)
+	# var cylinder_mesh := CylinderMesh.new()
 
-	var handles = PackedVector3Array([
+	var handles := PackedVector3Array([
 		Vector3(0, 0, -vc.range),
 		Vector3(vc.end_radius, 0, -vc.range)
 	])
 
-	#var cone_preview_material := "cone_preview_selected" if editor_interface.get_selection().get_selected_nodes().has(vc) else "cone_preview_unselected"
-
-	# Show cone when unselected, kind of distracting...
-	# var cone_alpha := 1.0 if editor_interface.get_selection().get_selected_nodes().has(vc) else 0.0
 	var cone_alpha := 1.0
 
-	if editor_interface.get_selection().get_selected_nodes().has(vc):
+	if EditorInterface.get_selection().get_selected_nodes().has(vc):
 		gizmo.add_lines(lines, get_material("cone_preview", gizmo), false, Color(1, 1, 1, cone_alpha))
 	gizmo.add_handles(handles, get_material("handles", gizmo), [])
 
+@warning_ignore("shadowed_global_identifier")
+@warning_ignore("return_value_discarded")
+@warning_ignore("integer_division")
 func _make_cone_lines(
 	resolution: int,
 	support_resolution: int,
 	end_radius: float,
 	range: float
-):
+) -> PackedVector3Array:
 	var points: PackedVector3Array = []
 	var support_every := resolution / support_resolution
 	var start : Vector3
 	for i in resolution:
 		# circle logic
-		var angle := float(i) * TAU / resolution 
+		var angle := float(i) * TAU / resolution
 		var x := cos(angle) * end_radius
 		var y := sin(angle) * end_radius
 		var point := Vector3(x, y, -range)

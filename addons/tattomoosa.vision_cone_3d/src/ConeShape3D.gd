@@ -22,29 +22,25 @@ extends ConvexPolygonShape3D
 var pending_resize := false
 
 # Update size to initial state
-func _init():
+func _init() -> void:
 	_request_resize()
 
 # Will only resize once per frame, during idle time
-func _request_resize():
+func _request_resize() -> void:
 	if !pending_resize:
 		_update_size.call_deferred()
 		pending_resize = true
 
 # Updates shape size
-func _update_size():
-	points = _make_cone_polygon_points(resolution, height, radius)
+func _update_size() -> void:
+	points = _make_cone_polygon_points()
 	pending_resize = false
 
 # Makes a cone polygon
-func _make_cone_polygon_points(
-	resolution: int,
-	height: float,
-	radius: float
-):
+@warning_ignore("return_value_discarded")
+func _make_cone_polygon_points() -> PackedVector3Array:
 	var pts : PackedVector3Array = []
 	var top : Vector3 = Vector3(0, height / 2, 0)
-	var radial_points : PackedVector3Array = []
 	for i in resolution:
 		var angle := float(i) * TAU / resolution
 		var x := cos(angle) * radius
