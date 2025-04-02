@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://cdbsstpvtrvhd"]
 
-[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/VisionConeDemoControls.gd" id="1_vf8s6"]
-[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/ui/ValueLabel.gd" id="2_8lgvy"]
+[ext_resource type="Script" uid="uid://dof1xi7gcbq7s" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/VisionConeDemoControls.gd" id="1_vf8s6"]
+[ext_resource type="Script" uid="uid://be67a8jv24c5o" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/ui/ValueLabel.gd" id="2_8lgvy"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_dqtte"]
 

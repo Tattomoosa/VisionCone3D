@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://b54xp226qbtu4"]
 
-[ext_resource type="Script" path="res://tests/common/VisionConePerformanceTest.gd" id="1_g1nob"]
-[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/src/VisionCone3D.gd" id="2_w4wy6"]
+[ext_resource type="Script" uid="uid://qgxyafowddmx" path="res://tests/common/VisionConePerformanceTest.gd" id="1_g1nob"]
+[ext_resource type="Script" uid="uid://cmgcelj1qxg8o" path="res://addons/tattomoosa.vision_cone_3d/src/VisionCone3D.gd" id="2_w4wy6"]
 [ext_resource type="PackedScene" uid="uid://cdbsstpvtrvhd" path="res://addons/tattomoosa.vision_cone_3d/examples/example_src/vision_cone_controls.tscn" id="3_l1lfj"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ljy7w"]
@@ -18,8 +18,8 @@ loop_mode = 1
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_b7ah6"]
 _data = {
-"RESET": SubResource("Animation_el1nw"),
-"rotate": SubResource("Animation_j7dk2")
+&"RESET": SubResource("Animation_el1nw"),
+&"rotate": SubResource("Animation_j7dk2")
 }
 
 [node name="PerformanceTest" type="Node3D" node_paths=PackedStringArray("vision_cone")]
@@ -52,7 +52,7 @@ offset_bottom = 23.0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
-"": SubResource("AnimationLibrary_b7ah6")
+&"": SubResource("AnimationLibrary_b7ah6")
 }
 autoplay = "rotate"
 

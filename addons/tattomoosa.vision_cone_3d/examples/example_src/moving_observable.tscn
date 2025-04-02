@@ -26,8 +26,8 @@ tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 2.03333, 1, 4, 0, 0, 6.03333, 
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_al81f"]
 _data = {
-"RESET": SubResource("Animation_c3q4w"),
-"back_and_forth": SubResource("Animation_jctf1")
+&"RESET": SubResource("Animation_c3q4w"),
+&"back_and_forth": SubResource("Animation_jctf1")
 }
 
 [node name="MovingObservable" instance=ExtResource("1_p0bro")]

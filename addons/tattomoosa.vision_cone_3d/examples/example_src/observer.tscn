@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://brqivkckug8uc"]
 
-[ext_resource type="Script" path="res://addons/tattomoosa.vision_cone_3d/src/VisionCone3D.gd" id="1_t4wly"]
+[ext_resource type="Script" uid="uid://cmgcelj1qxg8o" path="res://addons/tattomoosa.vision_cone_3d/src/VisionCone3D.gd" id="1_t4wly"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_td2ym"]
 

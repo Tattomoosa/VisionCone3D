@@ -52,8 +52,8 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_gv3ui"]
 _data = {
-"RESET": SubResource("Animation_gthqg"),
-"back_and_forth": SubResource("Animation_yavxk")
+&"RESET": SubResource("Animation_gthqg"),
+&"back_and_forth": SubResource("Animation_yavxk")
 }
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_vessb"]
@@ -142,7 +142,7 @@ transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Observables/Path3D"]
 libraries = {
-"": SubResource("AnimationLibrary_gv3ui")
+&"": SubResource("AnimationLibrary_gv3ui")
 }
 autoplay = "back_and_forth"
 
@@ -158,7 +158,7 @@ transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Observables/Path3D2"]
 libraries = {
-"": SubResource("AnimationLibrary_gv3ui")
+&"": SubResource("AnimationLibrary_gv3ui")
 }
 autoplay = "back_and_forth"
 
@@ -174,7 +174,7 @@ transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Observables/Path3D3"]
 libraries = {
-"": SubResource("AnimationLibrary_gv3ui")
+&"": SubResource("AnimationLibrary_gv3ui")
 }
 autoplay = "back_and_forth"
 
@@ -190,7 +190,7 @@ transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Observables/Path3D4"]
 libraries = {
-"": SubResource("AnimationLibrary_gv3ui")
+&"": SubResource("AnimationLibrary_gv3ui")
 }
 autoplay = "back_and_forth"
 
@@ -206,7 +206,7 @@ transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Observables/Path3D5"]
 libraries = {
-"": SubResource("AnimationLibrary_gv3ui")
+&"": SubResource("AnimationLibrary_gv3ui")
 }
 autoplay = "back_and_forth"
 
