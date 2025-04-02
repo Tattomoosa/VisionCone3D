@@ -119,7 +119,7 @@ var _cone_shape := ConeShape3D.new()
 ## CollisionObject3D.collision_layer must be part of this area's CollisionObject3D.collision_mask
 ## in order to be detected.
 func get_visible_bodies() -> Array[PhysicsBody3D]:
-	var bodies := []
+	var bodies : Array[PhysicsBody3D] = []
 	for prober: VisionTestProber in _body_probe_data.values():
 		bodies.push_back(prober.body)
 	return bodies
