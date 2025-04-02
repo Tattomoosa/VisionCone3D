@@ -26,6 +26,8 @@
 	<br/>
 </div>
 
+> Compatible with Godot 4.4 - see 4.3 branch for Godot 4.3 compatible version
+
 Adds VisionCone3D, which tracks whether or not objects within its cone shape can be "seen".
 This can be used to let objects in your game "see" multiple objects efficiently.
 Default configuration should work for most use-cases out of the box.
